@@ -1,0 +1,65 @@
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.text-neon {
+  color: #c7ff41;
+}
+
+.bg-neon {
+  background-color: #c7ff41;
+}
+
+.border-neon {
+  border-color: #c7ff41;
+}
+
+.hairline {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.grid-bg {
+  background-image:
+    linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.04) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.04) 1px,
+      transparent 1px
+    );
+
+  background-size: 56px 56px;
+}
+
+.neon-glow {
+  box-shadow:
+    0 0 0 1px #c7ff41,
+    0 0 24px -4px rgba(199, 255, 65, 0.45);
+}
+
+.neon-text-glow {
+  text-shadow: 0 0 24px rgba(199, 255, 65, 0.35);
+}
+
+.scan-line::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 3px,
+    rgba(255, 255, 255, 0.015) 3px,
+    rgba(255, 255, 255, 0.015) 4px
+  );
+
+  pointer-events: none;
+}
