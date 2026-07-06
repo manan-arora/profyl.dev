@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { ClerkProvider } from '@clerk/nextjs'
+import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
+import { shadcn } from "@clerk/ui/themes";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,10 +46,17 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col"> <ClerkProvider>
-        <Navbar />
-        {children}
-      </ClerkProvider></body>
+      <body className="min-h-full flex flex-col">
+        {" "}
+        <ClerkProvider
+          appearance={{
+            theme: shadcn,
+          }}
+        >
+          <Navbar />
+          {children}
+        </ClerkProvider>
+      </body>
     </html>
   );
 }
