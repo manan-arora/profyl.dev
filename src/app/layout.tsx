@@ -5,6 +5,7 @@ import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { shadcn } from "@clerk/ui/themes";
+import NavbarWrapper from "@/components/NavbarWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -53,7 +54,7 @@ export default function RootLayout({
             theme: shadcn,
           }}
         >
-          <Navbar />
+          <NavbarWrapper />
           {children}
         </ClerkProvider>
       </body>
