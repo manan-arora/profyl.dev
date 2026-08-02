@@ -8,7 +8,8 @@ export default function NavbarWrapper() {
 
   const hideNavbar =
     pathname.startsWith("/sign-in") ||
-    pathname.startsWith("/sign-up");
+    pathname.startsWith("/sign-up") ||
+    pathname.startsWith("/onboarding");
 
   if (hideNavbar) return null;
 

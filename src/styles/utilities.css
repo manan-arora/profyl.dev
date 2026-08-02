@@ -41,7 +41,7 @@
 .neon-glow {
   box-shadow:
     0 0 0 1px #c7ff41,
-    0 0 24px -4px rgba(199, 255, 65, 0.45);
+    0 0 25px -2px rgba(161, 213, 40, 0.12);
 }
 
 .neon-text-glow {
