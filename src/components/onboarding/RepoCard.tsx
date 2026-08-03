@@ -7,7 +7,7 @@ export interface Repo {
   primaryLanguage?: string | null;
   topics?: string[] | any; // support array of topics from DB or stack from reference
   stars: number;
-  updatedAt: Date | string; // support both Date and string types
+  githubUpdatedAt: Date | string; // support both Date and string types
   isFeatured?: boolean;
 }
 
@@ -72,8 +72,8 @@ export function RepoCard({
 }: RepoCardProps) {
   // Format the updated date as relative time
   const formattedDate = useMemo(() => {
-    return getRelativeTime(repo.updatedAt);
-  }, [repo.updatedAt]);
+    return getRelativeTime(repo.githubUpdatedAt);
+  }, [repo.githubUpdatedAt]);
 
   // Handle tech stack tags (supports both topics from DB and stack from mock)
   const tags = useMemo(() => {
@@ -85,6 +85,10 @@ export function RepoCard({
     }
     return [];
   }, [repo.topics, (repo as any).stack]);
+
+  const MAX_VISIBLE_TAGS = 5;
+  const visibleTags = useMemo(() => tags.slice(0, MAX_VISIBLE_TAGS), [tags]);
+  const overflowCount = useMemo(() => Math.max(0, tags.length - MAX_VISIBLE_TAGS), [tags]);
 
   return (
     <button
@@ -131,12 +135,13 @@ export function RepoCard({
 
       <div className="mt-auto pt-5 w-full">
         {tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {tags.map((t: string) => (
+          <div className="flex flex-wrap gap-1.5 max-h-[58px] overflow-hidden">
+            {visibleTags.map((t: string) => (
               <span
                 key={t}
+                title={t}
                 className={
-                  "font-mono text-[9px] uppercase tracking-widest px-2 py-1 border " +
+                  "font-mono text-[9px] uppercase tracking-widest px-2 py-1 border max-w-[110px] truncate inline-block " +
                   (selected
                     ? "border-[#C7FF41]/40 text-[#C7FF41]/80"
                     : "border-white/12 text-white/55")
@@ -145,6 +150,18 @@ export function RepoCard({
                 {t}
               </span>
             ))}
+            {overflowCount > 0 && (
+              <span
+                className={
+                  "font-mono text-[9px] uppercase tracking-widest px-2 py-1 border shrink-0 inline-block " +
+                  (selected
+                    ? "border-[#C7FF41]/40 text-[#C7FF41]/80"
+                    : "border-white/12 text-white/55")
+                }
+              >
+                +{overflowCount}
+              </span>
+            )}
           </div>
         )}
         <div className="mt-4 flex items-center justify-between font-mono text-[10px] text-white/40">

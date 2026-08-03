@@ -27,9 +27,14 @@ async function syncGithub(userId: string): Promise<SyncGithubResult> {
         getGithubRepositories(accessToken),
     ]);
 
+    console.log(profile.login);
+console.log(allRepositories.length);
+
     const eligibleRepositories = allRepositories.filter(
         (repo) => !repo.private && !repo.fork && !repo.archived
     );
+
+    console.log(eligibleRepositories.length);
 
     const eligibleGithubRepoIds = eligibleRepositories.map(repo => String(repo.id));
 
@@ -97,6 +102,7 @@ async function syncGithub(userId: string): Promise<SyncGithubResult> {
                     isArchived: repo.archived,
 
                     lastSyncedAt: syncedAt,
+                    githubUpdatedAt: new Date(repo.updated_at),
                 };
 
                 return tx.repository.upsert({

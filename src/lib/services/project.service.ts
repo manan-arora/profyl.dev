@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
  * repositories before persisting them, this service does not repeat that filtering.
  * 
  * @param userId - The ID of the user whose repositories to fetch
- * @returns Array of repository objects, ordered by updatedAt DESC
+ * @returns Array of repository objects, ordered by githubUpdatedAt DESC
  */
 async function getAvailableProjects(userId: string) {
     return prisma.repository.findMany({
@@ -15,7 +15,7 @@ async function getAvailableProjects(userId: string) {
             userId,
         },
         orderBy: {
-            updatedAt: "desc",
+            githubUpdatedAt: "desc",
         },
         select: {
             id: true,
@@ -23,8 +23,9 @@ async function getAvailableProjects(userId: string) {
             description: true,
             primaryLanguage: true,
             stars: true,
-            updatedAt: true,
+            githubUpdatedAt: true,
             isFeatured: true,
+            topics: true,
         }
     });
 }
@@ -68,17 +69,15 @@ async function saveFeaturedProjects(userId: string, projectIds: string[]) {
         }
 
         // Clear previous featured projects for this user
-        await Promise.all(
-            projectIds.map((id, index) =>
-                tx.repository.update({
-                    where: { id },
-                    data: {
-                        isFeatured: true,
-                        displayOrder: index + 1,
-                    },
-                })
-            )
-        );
+        await tx.repository.updateMany({
+            where: {
+                userId,
+            },
+            data: {
+                isFeatured: false,
+                displayOrder: null,
+            },
+        });
 
         // Feature selected projects and assign displayOrder sequentially
         for (let i = 0; i < projectIds.length; i++) {

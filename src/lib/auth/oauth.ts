@@ -8,6 +8,9 @@ import { prisma } from "@/lib/prisma";
  * @returns The GitHub OAuth access token string.
  * @throws Error if the user does not exist or has no GitHub OAuth access token.
  */
+
+
+
 export async function getGithubAccessToken(userId: string): Promise<string> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -19,10 +22,15 @@ export async function getGithubAccessToken(userId: string): Promise<string> {
   }
 
   const client = await clerkClient();
+
+  console.log("Internal user:", user);
+
   const oauthAccessTokens = await client.users.getUserOauthAccessToken(
     user.clerkId,
     "github"
   );
+
+  console.log(oauthAccessTokens);
 
   const tokenObj = oauthAccessTokens.data?.[0];
   const accessToken = tokenObj?.token;

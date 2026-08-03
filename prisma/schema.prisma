@@ -140,6 +140,7 @@ model Repository {
   projectSummary String?
 
   lastSyncedAt DateTime?
+  githubUpdatedAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

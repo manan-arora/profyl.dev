@@ -11,6 +11,8 @@ export type { Repo };
 interface OnboardingProjectsProps {
   repositories: Repo[];
   isLoading?: boolean;
+  isPending?: boolean;
+  error?: string | null;
   onContinue: (selectedRepositoryIds: string[]) => void;
   onResync?: () => void;
 }
@@ -20,6 +22,8 @@ const MAX_SELECTIONS = 4;
 export function OnboardingProjects({
   repositories = [],
   isLoading = false,
+  isPending = false,
+  error = null,
   onContinue,
   onResync,
 }: OnboardingProjectsProps) {
@@ -105,7 +109,7 @@ export function OnboardingProjects({
                     repo={r}
                     selected={selected.includes(r.id)}
                     index={selected.indexOf(r.id)}
-                    disabled={isFull && !selected.includes(r.id)}
+                    disabled={(isFull && !selected.includes(r.id)) || isPending}
                     onToggle={() => handleToggle(r.id)}
                   />
                 ))}
@@ -135,14 +139,18 @@ export function OnboardingProjects({
             </div>
 
             <div className="flex items-center gap-3">
-
+              {error && (
+                <span className="text-red-500 text-xs font-mono max-w-[200px] sm:max-w-none text-right">
+                  {error}
+                </span>
+              )}
               <button
                 type="button"
                 onClick={() => onContinue(selected)}
-                disabled={selected.length === 0}
+                disabled={selected.length === 0 || isPending}
                 className="inline-flex items-center gap-2 bg-neon text-[#0D0D0D] px-6 py-3 text-sm font-semibold transition disabled:opacity-25 disabled:cursor-not-allowed hover:opacity-90 cursor-pointer"
               >
-                Continue <span className="font-mono">→</span>
+                {isPending ? "Saving…" : <>Continue <span className="font-mono">→</span></>}
               </button>
             </div>
           </div>

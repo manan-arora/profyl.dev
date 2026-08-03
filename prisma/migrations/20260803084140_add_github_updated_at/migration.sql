@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Repository" ADD COLUMN     "githubUpdatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
