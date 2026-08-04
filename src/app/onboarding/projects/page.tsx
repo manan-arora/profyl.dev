@@ -11,13 +11,37 @@ export default async function OnboardingPage() {
     redirect("/sign-in");
   }
 
+  /**
+   * ROUTE GUARD: Redirect users who have already completed onboarding steps
+   * (e.g. reached DRAFT, READY_TO_PUBLISH, or PUBLISHED status) to their dashboard.
+   * Onboarding is a one-way setup process; they should not be allowed to re-run it.
+   */
+  if (user.profileStatus !== "INCOMPLETE") {
+    redirect("/dashboard");
+  }
+
   console.log("Loading onboarding for", user.id);
 
+  /**
+   * Keep a single unified data fetching execution path for both new and resuming users.
+   * This future-proofs the page if repository data is needed by components when resuming,
+   * and respects the existing caching TTL inside githubService.syncGithub.
+   */
   await githubService.syncGithub(user.id);
 
   console.log("Sync completed");
 
   const repositories = await projectService.getAvailableProjects(user.id);
 
-  return <OnboardingClient repositories={repositories} />;
+  /**
+   * Render the client shell, specifying whether onboarding should resume directly at
+   * the LeetCode modal. This is active when Case C is met (profileStatus == INCOMPLETE
+   * and featuredProjectsSelected == true).
+   */
+  return (
+    <OnboardingClient 
+      repositories={repositories} 
+      resumeAtLeetcode={user.featuredProjectsSelected} 
+    />
+  );
 }

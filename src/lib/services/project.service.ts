@@ -92,6 +92,16 @@ async function saveFeaturedProjects(userId: string, projectIds: string[]) {
                 },
             });
         }
+
+        // Mark onboarding featured projects step as selected
+        await tx.user.update({
+            where: {
+                id: userId,
+            },
+            data: {
+                featuredProjectsSelected: true,
+            },
+        });
     });
 }
 

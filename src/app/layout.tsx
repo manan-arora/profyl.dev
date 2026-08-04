@@ -6,6 +6,7 @@ import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { shadcn } from "@clerk/ui/themes";
 import NavbarWrapper from "@/components/NavbarWrapper";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -56,6 +57,7 @@ export default function RootLayout({
         >
           <NavbarWrapper />
           {children}
+          <Toaster />
         </ClerkProvider>
       </body>
     </html>

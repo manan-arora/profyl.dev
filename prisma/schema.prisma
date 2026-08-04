@@ -52,6 +52,7 @@ model User {
   publishedAt DateTime?
 
   isLeetcodeVerified Boolean @default(false)
+  featuredProjectsSelected Boolean @default(false)
 
   profile       Profile?
   githubCache   GitHubCache?
