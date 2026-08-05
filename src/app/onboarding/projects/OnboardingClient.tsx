@@ -6,7 +6,7 @@ import { OnboardingProjects } from "@/components/onboarding/OnboardingProjects";
 import { Repo } from "@/components/onboarding/RepoCard";
 import { saveFeaturedProjectsAction } from "@/app/onboarding/actions";
 import { toast } from "sonner";
-import { OnboardingLeetcodeModal } from "@/components/onboarding/OnboardingLeetcodeModal";
+import { OnboardingLeetcodeModal } from "@/components/leetcode/OnboardingLeetcodeModal";
 
 interface OnboardingClientProps {
   repositories: Repo[];
@@ -48,15 +48,6 @@ export default function OnboardingClient({
   };
 
   /**
-   * Primary Action: Direct the user to the LeetCode connection sub-flow.
-   * Closes the recommendation dialog and changes the router path.
-   */
-  const handleConnect = () => {
-    setIsModalOpen(false);
-    router.push("/onboarding/leetcode");
-  };
-
-  /**
    * Secondary Action: Skip LeetCode connection.
    * Closes the dialog but keeps the user on the current page context without navigating.
    */
@@ -82,9 +73,7 @@ export default function OnboardingClient({
       )}
       <OnboardingLeetcodeModal
         open={isModalOpen}
-        onConnect={handleConnect}
         onSkip={handleSkip}
-        isPending={isPending}
       />
     </>
   );
