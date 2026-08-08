@@ -41,3 +41,21 @@ export async function generateLeetcodeVerificationTokenAction(username: string) 
 
     return result;
 }
+
+/**
+ * Server Action to verify a user's LeetCode profile ownership.
+ * 
+ * @param username - The LeetCode username to verify
+ * @returns Result object with success status
+ */
+export async function verifyLeetcodeOwnershipAction(username: string) {
+    const user = await getCurrentUser();
+
+    if (!user) {
+        throw new Error("Unauthorized");
+    }
+
+    await leetcodeService.verifyOwnership(user.id, username);
+
+    return { success: true };
+}

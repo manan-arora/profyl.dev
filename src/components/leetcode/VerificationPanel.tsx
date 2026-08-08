@@ -4,7 +4,7 @@ import { useState } from "react";
 import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Copy, Check } from "lucide-react";
-import { generateLeetcodeVerificationTokenAction } from "@/app/onboarding/actions";
+import { generateLeetcodeVerificationTokenAction, verifyLeetcodeOwnershipAction } from "@/app/onboarding/actions";
 import { toast } from "sonner";
 
 interface VerificationPanelProps {
@@ -15,6 +15,7 @@ export function VerificationPanel({ onVerify }: VerificationPanelProps) {
   const [username, setUsername] = useState("");
   const [token, setToken] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const steps = [
@@ -35,8 +36,9 @@ export function VerificationPanel({ onVerify }: VerificationPanelProps) {
     try {
       const generatedToken = await generateLeetcodeVerificationTokenAction(trimmed);
       setToken(generatedToken);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to generate token. Please try again.");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to generate token. Please try again.";
+      toast.error(message);
     } finally {
       setIsGenerating(false);
     }
@@ -53,12 +55,25 @@ export function VerificationPanel({ onVerify }: VerificationPanelProps) {
     }
   };
 
-  const handleVerifyClick = () => {
-    if (onVerify) {
-      onVerify();
-    } else {
-      // TODO: Implement actual LeetCode profile ownership verification logic
-      toast.info("Ownership verification is not implemented yet.");
+  const handleVerifyClick = async () => {
+    const trimmed = username.trim();
+    if (!trimmed) {
+      toast.error("LeetCode username is required");
+      return;
+    }
+
+    setIsVerifying(true);
+    try {
+      await verifyLeetcodeOwnershipAction(trimmed);
+      toast.success("LeetCode account verified successfully!");
+      if (onVerify) {
+        onVerify();
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Verification failed. Please try again.";
+      toast.error(message);
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -154,11 +169,11 @@ export function VerificationPanel({ onVerify }: VerificationPanelProps) {
         <Button
           type="button"
           onClick={handleVerifyClick}
-          disabled={!token || isGenerating}
+          disabled={!token || isGenerating || isVerifying}
           variant="primary"
           className="w-full"
         >
-          Verify LeetCode Account
+          {isVerifying ? "Verifying..." : "Verify LeetCode Account"}
         </Button>
       </div>
     </div>

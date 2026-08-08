@@ -54,7 +54,7 @@ export function OnboardingLeetcodeModal({
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.15, ease: "easeOut" }}
             >
-              <VerificationPanel />
+              <VerificationPanel onVerify={onSkip} />
             </motion.div>
           )}
         </AnimatePresence>
