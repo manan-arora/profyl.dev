@@ -4,7 +4,7 @@ import { useState } from "react";
 import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Copy, Check } from "lucide-react";
-import { generateLeetcodeVerificationTokenAction, verifyLeetcodeOwnershipAction } from "@/app/onboarding/actions";
+import { completeLeetcodeConnectionAction, generateLeetcodeVerificationTokenAction} from "@/app/onboarding/actions";
 import { toast } from "sonner";
 
 interface VerificationPanelProps {
@@ -64,7 +64,7 @@ export function VerificationPanel({ onVerify }: VerificationPanelProps) {
 
     setIsVerifying(true);
     try {
-      await verifyLeetcodeOwnershipAction(trimmed);
+      await completeLeetcodeConnectionAction(trimmed);
       toast.success("LeetCode account verified successfully!");
       if (onVerify) {
         onVerify();

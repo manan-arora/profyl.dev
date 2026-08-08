@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { generateVerificationToken as generateRandomToken } from "@/lib/utils/verification-token";
-import { getLeetcodeAbout } from "@/lib/leetcode/client";
+import {
+  getLeetcodeAbout,
+  getLeetcodeProfile,
+  getLeetcodeContest,
+  getLeetcodeContestHistory,
+} from "@/lib/leetcode/client";
 
 const VERIFICATION_TOKEN_EXPIRY_MINUTES = 30;
 const LEETCODE_USERNAME_REGEX = /^[a-zA-Z0-9_-]+$/;
@@ -169,7 +174,81 @@ async function verifyOwnership(
   ]);
 }
 
+/**
+ * Synchronizes the user's LeetCode data from the external API and caches it.
+ * Verifies that the user has a verified LeetCode profile first.
+ * 
+ * @param userId - The ID of the user whose LeetCode data is to be synchronized
+ */
+async function syncLeetcodeData(userId: string): Promise<void> {
+  // 1. Retrieve the existing cache and user record to check verification status and username
+  const cache = await prisma.leetCodeCache.findUnique({
+    where: {
+      userId,
+    },
+    include: {
+      user: true,
+    },
+  });
+
+  if (!cache) {
+    throw new Error("LeetCode cache record not found for this user");
+  }
+
+  if (!cache.user.isLeetcodeVerified || !cache.username) {
+    throw new Error("User does not have a verified LeetCode connection");
+  }
+
+  const username = cache.username;
+
+  // 2. Fetch the required LeetCode data using leetcode/client.ts
+  const [profile, contest, contestHistory] = await Promise.all([
+    getLeetcodeProfile(username),
+    getLeetcodeContest(username),
+    getLeetcodeContestHistory(username),
+  ]);
+
+  // 3. Map the API responses to LeetCodeCache fields.
+  const syncedAt = new Date();
+  const CACHE_TTL_HOURS = 12;
+  const cacheExpiresAt = new Date(
+    syncedAt.getTime() + CACHE_TTL_HOURS * 60 * 60 * 1000
+  );
+
+  const contestRating = contest.contestRating != null ? Math.round(contest.contestRating) : null;
+  const percentile =
+  contest.contestTopPercentage != null
+    ? Number((100 - contest.contestTopPercentage).toFixed(2))
+    : null;
+
+  // 4. Update the existing LeetCodeCache row for the user.
+  await prisma.leetCodeCache.update({
+    where: {
+      userId,
+    },
+    data: {
+      problemsSolved: profile.totalSolved,
+      easySolved: profile.easySolved,
+      mediumSolved: profile.mediumSolved,
+      hardSolved: profile.hardSolved,
+      overallRanking: profile.ranking,
+      submissionCalendar: profile.submissionCalendar,
+      
+      contestRating,
+      contestGlobalRanking: contest.contestGlobalRanking,
+      contestsParticipated: contest.contestAttend,
+      percentile,
+
+      ratingHistory: contestHistory.contestHistory,
+
+      lastSyncedAt: syncedAt,
+      cacheExpiresAt,
+    },
+  });
+}
+
 export const leetcodeService = {
   generateVerificationToken,
   verifyOwnership,
+  syncLeetcodeData,
 };

@@ -1,17 +1,23 @@
-import { LeetcodeAboutResponse } from "@/types/leetcode";
+import {
+    LeetcodeAboutResponse,
+    LeetcodeProfileResponse,
+    LeetcodeContestResponse,
+    LeetcodeContestHistoryResponse,
+} from "@/types/leetcode";
 
 const REQUEST_TIMEOUT_MS = 10_000;
 
-export async function getLeetcodeAbout(
-    username: string
-): Promise<LeetcodeAboutResponse> {
+async function fetchFromLeetcode<T>(
+    username: string,
+    endpoint: string
+): Promise<T> {
     const baseUrl = process.env.LEETCODE_API_URL;
 
     if (!baseUrl) {
         throw new Error("LEETCODE_API_URL environment variable is not defined");
     }
 
-    const url = `${baseUrl.replace(/\/$/, "")}/${username}/about`;
+    const url = `${baseUrl.replace(/\/$/, "")}/${username}/${endpoint}`;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -42,7 +48,7 @@ export async function getLeetcodeAbout(
             );
         }
 
-        return data as LeetcodeAboutResponse;
+        return data as T;
     } catch (error) {
         if (error instanceof Error && error.name === "AbortError") {
             throw new Error("LeetCode API request timed out");
@@ -53,3 +59,27 @@ export async function getLeetcodeAbout(
         clearTimeout(timeoutId);
     }
 }
+
+export async function getLeetcodeAbout(
+    username: string
+): Promise<LeetcodeAboutResponse> {
+    return fetchFromLeetcode<LeetcodeAboutResponse>(username, "about");
+}
+
+export async function getLeetcodeProfile(
+    username: string
+): Promise<LeetcodeProfileResponse> {
+    return fetchFromLeetcode<LeetcodeProfileResponse>(username, "profile");
+}
+
+export async function getLeetcodeContest(
+    username: string
+): Promise<LeetcodeContestResponse> {
+    return fetchFromLeetcode<LeetcodeContestResponse>(username, "contest");
+}
+
+export async function getLeetcodeContestHistory(
+    username: string
+): Promise<LeetcodeContestHistoryResponse> {
+    return fetchFromLeetcode<LeetcodeContestHistoryResponse>(username, "contest/history");
+}

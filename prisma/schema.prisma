@@ -201,7 +201,8 @@ model LeetCodeCache {
   username String? @unique
 
   contestRating Int?
-  globalRanking Int?
+  overallRanking Int?
+  contestGlobalRanking Int?
   percentile    Float?
 
   problemsSolved Int?

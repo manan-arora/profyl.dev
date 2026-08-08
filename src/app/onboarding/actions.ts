@@ -43,19 +43,47 @@ export async function generateLeetcodeVerificationTokenAction(username: string) 
 }
 
 /**
- * Server Action to verify a user's LeetCode profile ownership.
+ * Server Action to verify a user's LeetCode profile ownership and persist profile data.
  * 
  * @param username - The LeetCode username to verify
  * @returns Result object with success status
  */
-export async function verifyLeetcodeOwnershipAction(username: string) {
-    const user = await getCurrentUser();
+export async function completeLeetcodeConnectionAction(username: string) {
+  const user = await getCurrentUser();
 
-    if (!user) {
-        throw new Error("Unauthorized");
-    }
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
 
-    await leetcodeService.verifyOwnership(user.id, username);
+  await leetcodeService.verifyOwnership(user.id, username);
 
-    return { success: true };
+  try {
+    await leetcodeService.syncLeetcodeData(user.id);
+
+    return {
+      verified: true,
+      synced: true,
+    };
+  } catch (error) {
+    console.error("LeetCode sync failed:", error);
+
+    return {
+      verified: true,
+      synced: false,
+    };
+  }
+}
+
+export async function retryLeetcodeSyncAction() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
+  await leetcodeService.syncLeetcodeData(user.id);
+
+  return {
+    synced: true,
+  };
 }
