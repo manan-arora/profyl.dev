@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-// import profylLogo from "@/assets/profyl-logo.png.asset.json";
+import { useNavigate } from "@tanstack/react-router";
+import profylLogo from "@/assets/profyl-logo.png.asset.json";
 
 type Repo = {
   id: string;
@@ -126,7 +127,7 @@ export function OnboardingProjects() {
         <header className="relative border-b hairline">
           <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
             <div className="flex items-end gap-2">
-              {/* <img src={profylLogo.url} alt="Profyl" className="size-7 object-contain" /> */}
+              <img src={profylLogo.url} alt="Profyl" className="size-7 object-contain" />
               <span className="font-display font-semibold tracking-tight text-lg leading-none mb-0.5">
                 profyl
               </span>
@@ -340,7 +341,59 @@ function EmptyState() {
   );
 }
 
+type ModalView = "intro" | "syncing" | "success" | "sync-failed";
+
+function ResultRing({ warn }: { warn?: boolean }) {
+  return (
+    <div className="relative mx-auto size-20">
+      <svg viewBox="0 0 64 64" className="size-20 -rotate-90" aria-hidden="true">
+        <circle cx="32" cy="32" r="28" className="stroke-white/10" strokeWidth="1.5" fill="none" />
+        <circle
+          cx="32"
+          cy="32"
+          r="28"
+          className="stroke-neon animate-ring-draw"
+          strokeWidth="1.5"
+          fill="none"
+          strokeLinecap="square"
+        />
+      </svg>
+      <svg viewBox="0 0 64 64" className="absolute inset-0 size-20" aria-hidden="true">
+        <path
+          d="M21 33.5L28.5 41L43 25"
+          className="stroke-neon animate-check-draw"
+          strokeWidth="2"
+          fill="none"
+          strokeLinecap="square"
+          strokeLinejoin="miter"
+        />
+      </svg>
+      {warn && (
+        <span className="absolute -bottom-0.5 -right-0.5 flex size-6 items-center justify-center border border-amber-400/40 bg-[#0D0D0D] animate-warn-in">
+          <span className="font-mono text-[11px] leading-none text-amber-400">!</span>
+        </span>
+      )}
+    </div>
+  );
+}
+
 function LeetCodeModal({ onClose }: { onClose: () => void }) {
+  const [view, setView] = useState<ModalView>("intro");
+  const navigate = useNavigate();
+  const [nextResult, setNextResult] = useState<"success" | "sync-failed">("success");
+
+  useEffect(() => {
+    if (view !== "syncing") return;
+    const t = setTimeout(() => setView(nextResult), 2200);
+    return () => clearTimeout(t);
+  }, [view, nextResult]);
+
+  useEffect(() => {
+    if (view !== "success") return;
+    const t = setTimeout(() => navigate({ to: "/dashboard" }), 1600);
+    return () => clearTimeout(t);
+  }, [view, navigate]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -371,67 +424,154 @@ function LeetCodeModal({ onClose }: { onClose: () => void }) {
       <div className="relative w-full max-w-[420px] border hairline bg-[#0D0D0D] shadow-2xl [box-shadow:0_0_0_1px_rgba(199,255,65,0.08),0_24px_60px_-20px_rgba(0,0,0,0.7)]">
         <div className="absolute inset-0 grid-bg opacity-30 pointer-events-none" />
 
-        <div className="relative p-7 sm:p-9">
-          <div className="inline-flex items-center justify-center size-10 border border-neon/40 bg-neon/5">
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              className="text-neon"
-              aria-hidden="true"
+        {view !== "intro" ? (
+          <div className="relative p-7 sm:p-9 text-center">
+            <ResultRing warn={view === "sync-failed"} />
+
+            <h2
+              id="leetcode-modal-heading"
+              className="mt-7 font-display font-semibold tracking-[-0.02em] text-[clamp(1.5rem,4vw,1.875rem)] leading-[1.05] animate-rise-in [animation-delay:0.8s]"
             >
-              <path
-                d="M4 7V17M20 7V17M9 9L6 12L9 15M15 9L18 12L15 15"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="square"
-              />
-            </svg>
-          </div>
+              LeetCode <span className="text-neon neon-text-glow italic">verified</span>
+            </h2>
 
-          <h2
-            id="leetcode-modal-heading"
-            className="mt-5 font-display font-semibold tracking-[-0.02em] text-[clamp(1.5rem,4vw,1.875rem)] leading-[1.05]"
-          >
-            Complete your first <span className="text-neon neon-text-glow italic">Profyl</span>
-          </h2>
-
-          <p className="mt-3 text-[14px] leading-relaxed text-white/60">
-            Connect your LeetCode account to include problem-solving signals in your first profile.
-          </p>
-
-          <div className="mt-6 space-y-2.5">
-            {benefits.map((benefit) => (
-              <div key={benefit} className="flex items-start gap-2.5">
-                <span className="mt-1.5 size-1 bg-neon rounded-full shrink-0" />
-                <span className="text-[13px] text-white/75 leading-snug">{benefit}</span>
+            {view === "syncing" ? (
+              <div className="mt-4 flex items-center justify-center gap-2.5 animate-rise-in [animation-delay:0.95s]">
+                <span className="size-3.5 border border-white/15 border-t-neon rounded-full animate-spin" />
+                <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/50">
+                  Syncing your LeetCode data…
+                </span>
               </div>
-            ))}
+            ) : view === "success" ? (
+              <>
+                <p className="mt-3 text-[14px] leading-relaxed text-white/60 animate-rise-in">
+                  Your LeetCode profile has been connected and your coding data is ready.
+                </p>
+                <div className="mt-8 animate-rise-in">
+                  <div className="h-px w-full bg-white/10 overflow-hidden">
+                    <div className="h-px w-full bg-neon/70 animate-bar-fill" />
+                  </div>
+                  <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.22em] text-white/40">
+                    Preparing your Profyl…
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="mt-3 text-[14px] leading-relaxed text-white/60 animate-rise-in">
+                  Your account was verified, but we couldn't sync your LeetCode data right now.
+                </p>
+                <div className="mt-8 animate-rise-in">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNextResult("success");
+                      setView("syncing");
+                    }}
+                    className="inline-flex w-full items-center justify-center gap-2 bg-neon text-[#0D0D0D] px-5 py-2.5 text-sm font-semibold transition hover:opacity-90"
+                  >
+                    Retry sync <span className="font-mono">→</span>
+                  </button>
+                  <p className="mt-4 text-[11px] leading-relaxed text-white/35">
+                    You won't need to verify your account again.
+                  </p>
+                </div>
+              </>
+            )}
           </div>
+        ) : (
+          <div className="relative p-7 sm:p-9">
+            <div className="inline-flex items-center justify-center size-10 border border-neon/40 bg-neon/5">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                className="text-neon"
+                aria-hidden="true"
+              >
+                <path
+                  d="M4 7V17M20 7V17M9 9L6 12L9 15M15 9L18 12L15 15"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="square"
+                />
+              </svg>
+            </div>
 
-          <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <button
-              type="button"
-              className="inline-flex items-center justify-center gap-2 bg-neon text-[#0D0D0D] px-5 py-2.5 text-sm font-semibold transition hover:opacity-90"
+            <h2
+              id="leetcode-modal-heading"
+              className="mt-5 font-display font-semibold tracking-[-0.02em] text-[clamp(1.5rem,4vw,1.875rem)] leading-[1.05]"
             >
-              Connect LeetCode <span className="font-mono">→</span>
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-white/50 hover:text-white transition"
-            >
-              Skip for now
-            </button>
+              Complete your first <span className="text-neon neon-text-glow italic">Profyl</span>
+            </h2>
+
+            <p className="mt-3 text-[14px] leading-relaxed text-white/60">
+              Connect your LeetCode account to include problem-solving signals in your first profile.
+            </p>
+
+            <div className="mt-6 space-y-2.5">
+              {benefits.map((benefit) => (
+                <div key={benefit} className="flex items-start gap-2.5">
+                  <span className="mt-1.5 size-1 bg-neon rounded-full shrink-0" />
+                  <span className="text-[13px] text-white/75 leading-snug">{benefit}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setNextResult("success");
+                  setView("syncing");
+                }}
+                className="inline-flex items-center justify-center gap-2 bg-neon text-[#0D0D0D] px-5 py-2.5 text-sm font-semibold transition hover:opacity-90"
+              >
+                Connect LeetCode <span className="font-mono">→</span>
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-white/50 hover:text-white transition"
+              >
+                Skip for now
+              </button>
+            </div>
+
+            <p className="mt-6 text-[11px] leading-relaxed text-white/35">
+              You'll need to verify your LeetCode account before publishing your public profile. You
+              can always do this later.
+            </p>
+
+            <div className="mt-6 pt-4 border-t hairline flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.18em] text-white/30">
+              <span>Preview states</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setNextResult("success");
+                  setView("syncing");
+                }}
+                className="hover:text-neon transition"
+              >
+                Synced
+              </button>
+              <span className="text-white/15">/</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setNextResult("sync-failed");
+                  setView("syncing");
+                }}
+                className="hover:text-neon transition"
+              >
+                Sync failed
+              </button>
+            </div>
           </div>
-
-          <p className="mt-6 text-[11px] leading-relaxed text-white/35">
-            You'll need to verify your LeetCode account before publishing your public profile. You
-            can always do this later.
-          </p>
-        </div>
+        )}
       </div>
     </div>
   );
 }
+

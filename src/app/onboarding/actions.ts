@@ -43,12 +43,12 @@ export async function generateLeetcodeVerificationTokenAction(username: string) 
 }
 
 /**
- * Server Action to verify a user's LeetCode profile ownership and persist profile data.
+ * Server Action to verify a user's LeetCode profile ownership.
  * 
  * @param username - The LeetCode username to verify
- * @returns Result object with success status
+ * @returns Result object with verified status
  */
-export async function completeLeetcodeConnectionAction(username: string) {
+export async function verifyLeetcodeOwnershipAction(username: string) {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -57,23 +57,31 @@ export async function completeLeetcodeConnectionAction(username: string) {
 
   await leetcodeService.verifyOwnership(user.id, username);
 
-  try {
-    await leetcodeService.syncLeetcodeData(user.id);
-
-    return {
-      verified: true,
-      synced: true,
-    };
-  } catch (error) {
-    console.error("LeetCode sync failed:", error);
-
-    return {
-      verified: true,
-      synced: false,
-    };
-  }
+  return { verified: true };
 }
 
+/**
+ * Server Action to synchronize a verified user's LeetCode data.
+ * 
+ * @returns Result object with synced status
+ */
+export async function syncLeetcodeDataAction() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
+  await leetcodeService.syncLeetcodeData(user.id);
+
+  return { synced: true };
+}
+
+/**
+ * Server Action to retry synchronization for a verified user's LeetCode data.
+ * 
+ * @returns Result object with synced status
+ */
 export async function retryLeetcodeSyncAction() {
   const user = await getCurrentUser();
 
@@ -83,7 +91,5 @@ export async function retryLeetcodeSyncAction() {
 
   await leetcodeService.syncLeetcodeData(user.id);
 
-  return {
-    synced: true,
-  };
-}
+  return { synced: true };
+}

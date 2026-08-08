@@ -26,3 +26,82 @@
 .animate-ticker {
   animation: ticker 40s linear infinite;
 }
+
+/* LeetCode Result Panel Animations */
+.stroke-neon {
+  stroke: #c7ff41;
+}
+
+@keyframes ring-draw {
+  from {
+    stroke-dashoffset: 176;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-ring-draw {
+  stroke-dasharray: 176;
+  stroke-dashoffset: 176;
+  animation: ring-draw 0.7s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+@keyframes check-draw {
+  from {
+    stroke-dashoffset: 34;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-check-draw {
+  stroke-dasharray: 34;
+  stroke-dashoffset: 34;
+  animation: check-draw 0.4s cubic-bezier(0.65, 0, 0.35, 1) 0.55s both;
+}
+
+@keyframes warn-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-warn-in {
+  animation: warn-in 0.35s cubic-bezier(0.65, 0, 0.35, 1) 1.1s both;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-rise-in {
+  animation: rise-in 0.5s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+@keyframes bar-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.animate-bar-fill {
+  transform-origin: left;
+  animation: bar-fill 2.4s cubic-bezier(0.65, 0, 0.35, 1) 1s both;
+}

@@ -181,7 +181,10 @@ async function verifyOwnership(
  * @param userId - The ID of the user whose LeetCode data is to be synchronized
  */
 async function syncLeetcodeData(userId: string): Promise<void> {
+
+  
   // 1. Retrieve the existing cache and user record to check verification status and username
+
   const cache = await prisma.leetCodeCache.findUnique({
     where: {
       userId,
