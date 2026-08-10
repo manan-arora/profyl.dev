@@ -3,15 +3,17 @@
 import { Button } from "@/components/ui/button";
 
 interface LeetcodeResultPanelProps {
-  state: "syncing" | "success" | "sync-failed";
+  state: "syncing" | "success" | "sync-failed" | "sync-unavailable";
   onRetry?: () => void;
+  onContinueToDashboard?: () => void;
 }
 
 export function LeetcodeResultPanel({
   state,
   onRetry,
+  onContinueToDashboard,
 }: LeetcodeResultPanelProps) {
-  const showWarn = state === "sync-failed";
+  const showWarn = state === "sync-failed" || state === "sync-unavailable";
 
   return (
     <div className="text-center font-sans text-white">
@@ -98,6 +100,24 @@ export function LeetcodeResultPanel({
             <p className="mt-4 text-[11px] leading-relaxed text-white/35">
               {"You won't need to verify your account again."}
             </p>
+          </div>
+        </>
+      )}
+
+      {state === "sync-unavailable" && (
+        <>
+          <p className="mt-3 text-[14px] leading-relaxed text-white/60 animate-rise-in">
+            {"Your account was verified, but we couldn't reach LeetCode right now. You can try syncing again later."}
+          </p>
+          <div className="mt-8 animate-rise-in">
+            <Button
+              type="button"
+              onClick={onContinueToDashboard}
+              variant="primary"
+              className="w-full justify-center cursor-pointer"
+            >
+              Go to Dashboard <span className="font-mono">→</span>
+            </Button>
           </div>
         </>
       )}

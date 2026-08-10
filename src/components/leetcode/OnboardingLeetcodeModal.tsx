@@ -1,21 +1,18 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { RecommendationPanel } from "./RecommendationPanel";
-import { VerificationPanel } from "./VerificationPanel";
-import { LeetcodeResultPanel } from "./LeetcodeResultPanel";
+import { LeetcodeConnectFlow } from "./LeetcodeConnectFlow";
 import { motion, AnimatePresence } from "framer-motion";
-import { syncLeetcodeDataAction, retryLeetcodeSyncAction } from "@/app/onboarding/actions";
 
 interface OnboardingLeetcodeModalProps {
   open: boolean;
   onSkip: () => void;
 }
 
-type ActivePanel = "recommendation" | "verification" | "result";
-type ResultState = "syncing" | "success" | "sync-failed";
+type ActivePanel = "recommendation" | "connect";
 
 export function OnboardingLeetcodeModal({
   open,
@@ -23,7 +20,6 @@ export function OnboardingLeetcodeModal({
 }: OnboardingLeetcodeModalProps) {
   const router = useRouter();
   const [activePanel, setActivePanel] = useState<ActivePanel>("recommendation");
-  const [resultState, setResultState] = useState<ResultState>("syncing");
 
   const [prevOpen, setPrevOpen] = useState(open);
 
@@ -32,46 +28,16 @@ export function OnboardingLeetcodeModal({
     setPrevOpen(open);
     if (!open) {
       setActivePanel("recommendation");
-      setResultState("syncing");
     }
   }
 
-  // Execute sync action and handle state transition
-  const executeSync = useCallback(async (isRetry = false) => {
-    setResultState("syncing");
-    try {
-      if (isRetry) {
-        await retryLeetcodeSyncAction();
-      } else {
-        await syncLeetcodeDataAction();
-      }
-      setResultState("success");
-    } catch (error: unknown) {
-      console.error("LeetCode sync failed:", error);
-      setResultState("sync-failed");
-    }
-  }, []);
+  const handleComplete = () => {
+    router.push("/dashboard");
+  };
 
-  // Called when verification succeeds
-  const handleVerified = useCallback(() => {
-    setActivePanel("result");
-    executeSync(false);
-  }, [executeSync]);
-
-  // Called when user clicks "Retry sync →"
-  const handleRetrySync = useCallback(() => {
-    executeSync(true);
-  }, [executeSync]);
-
-  // Handle automatic navigation to dashboard upon successful sync
-  useEffect(() => {
-    if (activePanel === "result" && resultState === "success") {
-      const timer = setTimeout(() => {
-        router.push("/dashboard");
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [activePanel, resultState, router]);
+  const handleUnavailable = () => {
+    router.push("/dashboard");
+  };
 
   return (
     <Dialog open={open}>
@@ -91,35 +57,23 @@ export function OnboardingLeetcodeModal({
               transition={{ duration: 0.15, ease: "easeOut" }}
             >
               <RecommendationPanel
-                onConnect={() => setActivePanel("verification")}
+                onConnect={() => setActivePanel("connect")}
                 onSkip={onSkip}
               />
             </motion.div>
           )}
 
-          {activePanel === "verification" && (
+          {activePanel === "connect" && (
             <motion.div
-              key="verification"
+              key="connect"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.15, ease: "easeOut" }}
             >
-              <VerificationPanel onVerify={handleVerified} />
-            </motion.div>
-          )}
-
-          {activePanel === "result" && (
-            <motion.div
-              key="result"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.15, ease: "easeOut" }}
-            >
-              <LeetcodeResultPanel
-                state={resultState}
-                onRetry={handleRetrySync}
+              <LeetcodeConnectFlow
+                onComplete={handleComplete}
+                onUnavailable={handleUnavailable}
               />
             </motion.div>
           )}
@@ -128,4 +82,5 @@ export function OnboardingLeetcodeModal({
     </Dialog>
   );
 }
+
 
