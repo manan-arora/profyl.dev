@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -12,9 +7,160 @@ datasource db {
   provider = "postgresql"
 }
 
-// ================================
-//ENUMS
-// ================================
+model User {
+  id                       String         @id @default(cuid())
+  clerkId                  String         @unique
+  email                    String         @unique
+  githubId                 String         @unique
+  githubUsername           String         @unique
+  slug                     String         @unique
+  profileStatus            ProfileStatus
+  isPublished              Boolean        @default(false)
+  publishedAt              DateTime?
+  isLeetcodeVerified       Boolean        @default(false)
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+  featuredProjectsSelected Boolean        @default(false)
+  aiInsights               AIInsights?
+  analytics                Analytics?
+  githubCache              GitHubCache?
+  leetcodeCache            LeetCodeCache?
+  profile                  Profile?
+  repositories             Repository[]
+
+  @@index([githubUsername])
+  @@index([slug])
+}
+
+model Profile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  headline        String?
+  bio             String?
+  currentRole     String?
+  currentCompany  String?
+  yearsExperience Int?
+  college         String?
+  graduationYear  Int?
+  techStack       Json?
+  linkedinUrl     String?
+  portfolioUrl    String?
+  resumeUrl       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Repository {
+  id                   String    @id @default(cuid())
+  userId               String
+  githubRepoId         String    @unique
+  name                 String
+  description          String?
+  stars                Int
+  forks                Int
+  primaryLanguage      String?
+  topics               Json?
+  githubUrl            String
+  homepageUrl          String?
+  isFork               Boolean
+  isArchived           Boolean
+  isFeatured           Boolean   @default(false)
+  displayOrder         Int?
+  customTitle          String?
+  customDescription    String?
+  liveDemoUrl          String?
+  projectSummary       String?
+  lastSyncedAt         DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  githubUpdatedAt      DateTime  @default(now())
+  detectedCapabilities Json?
+  detectedTechnologies Json?
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isFeatured])
+  @@index([userId, displayOrder])
+}
+
+model GitHubCache {
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  followers            Int?
+  following            Int?
+  publicRepoCount      Int?
+  totalContributionsLastYear Int?
+  contributionCalendar       Json?
+  longestStreak        Int?
+  activeWeeks          Int?
+  ossPrsMerged         Int?
+  starsEarned          Int?
+  forksEarned          Int?
+  languageDistribution Json?
+  lastSyncedAt         DateTime?
+  cacheExpiresAt       DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LeetCodeCache {
+  id                         String    @id @default(cuid())
+  userId                     String    @unique
+  username                   String?   @unique
+  contestRating              Int?
+  percentile                 Float?
+  problemsSolved             Int?
+  easySolved                 Int?
+  mediumSolved               Int?
+  hardSolved                 Int?
+  contestsParticipated       Int?
+  ratingHistory              Json?
+  submissionCalendar         Json?
+  verificationToken          String?
+  verificationTokenExpiresAt DateTime?
+  verifiedAt                 DateTime?
+  lastSyncedAt               DateTime?
+  cacheExpiresAt             DateTime?
+  createdAt                  DateTime  @default(now())
+  updatedAt                  DateTime  @updatedAt
+  contestGlobalRanking       Int?
+  overallRanking             Int?
+  user                       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Analytics {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  profylScore      Int?
+  tier             Tier?
+  githubScore      Int?
+  projectsScore    Int?
+  leetcodeScore    Int?
+  consistencyScore Int?
+  radar            Json?
+  signalBreakdown  Json?
+  profylPercentile Float?
+  computedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AIInsights {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  aiSignal      String?
+  aiSummary     String?
+  strengthChips Json?
+  sourceHash    String?
+  modelVersion  String?
+  generatedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
 enum ProfileStatus {
   INCOMPLETE
@@ -29,257 +175,4 @@ enum Tier {
   GOLD
   PLATINUM
   DIAMOND
-}
-
-// ================================
-//USER MODEL
-// ================================
-
-model User {
-  id String @id @default(cuid())
-
-  clerkId String @unique
-  email   String @unique
-
-  githubId       String @unique
-  githubUsername String @unique
-
-  slug String @unique
-
-  profileStatus ProfileStatus
-
-  isPublished Boolean   @default(false)
-  publishedAt DateTime?
-
-  isLeetcodeVerified Boolean @default(false)
-  featuredProjectsSelected Boolean @default(false)
-
-  profile       Profile?
-  githubCache   GitHubCache?
-  leetcodeCache LeetCodeCache?
-  analytics     Analytics?
-  aiInsights    AIInsights?
-
-  repositories Repository[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([githubUsername])
-  @@index([slug])
-}
-
-// ================================
-//PROFILE MODEL
-// ================================
-
-model Profile {
-  id String @id @default(cuid())
-
-  userId String @unique
-
-  headline String?
-  bio      String?
-
-  currentRole    String?
-  currentCompany String?
-
-  yearsExperience Int?
-
-  college        String?
-  graduationYear Int?
-
-  techStack Json?
-
-  linkedinUrl  String?
-  portfolioUrl String?
-
-  resumeUrl String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ================================
-//REPOSITORY MODEL
-// ================================
-
-model Repository {
-  id String @id @default(cuid())
-
-  userId String
-
-  githubRepoId String @unique
-
-  name        String
-  description String?
-
-  stars Int
-  forks Int
-
-  primaryLanguage String?
-
-  topics Json?
-
-  githubUrl   String
-  homepageUrl String?
-
-  isFork     Boolean
-  isArchived Boolean
-
-  isFeatured Boolean @default(false)
-
-  displayOrder Int?
-
-  customTitle       String?
-  customDescription String?
-
-  liveDemoUrl String?
-
-  projectSummary String?
-
-  lastSyncedAt DateTime?
-  githubUpdatedAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([userId])
-  @@index([userId, isFeatured])
-  @@index([userId, displayOrder])
-}
-
-// ================================
-//GITHUB CACHE MODEL
-// ================================
-
-model GitHubCache {
-  id String @id @default(cuid())
-
-  userId String @unique
-
-  followers Int?
-  following Int?
-
-  publicRepoCount Int?
-
-  contributions365 Int?
-
-  longestStreak Int?
-
-  activeWeeks Int?
-
-  ossPrsMerged Int?
-
-  starsEarned Int?
-
-  languageDistribution Json?
-  contributionSeries   Json?
-
-  lastSyncedAt   DateTime?
-  cacheExpiresAt DateTime?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ================================
-//LEETCODE CACHE MODEL
-// ================================
-
-model LeetCodeCache {
-  id String @id @default(cuid())
-
-  userId String @unique
-
-  username String? @unique
-
-  contestRating Int?
-  overallRanking Int?
-  contestGlobalRanking Int?
-  percentile    Float?
-
-  problemsSolved Int?
-  easySolved     Int?
-  mediumSolved   Int?
-  hardSolved     Int?
-
-  contestsParticipated Int?
-
-  ratingHistory      Json?
-  submissionCalendar Json?
-
-  verificationToken          String?
-  verificationTokenExpiresAt DateTime?
-  verifiedAt                 DateTime?
-
-  lastSyncedAt   DateTime?
-  cacheExpiresAt DateTime?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ================================
-//ANALYTICS MODEL
-// ================================
-
-model Analytics {
-  id String @id @default(cuid())
-
-  userId String @unique
-
-  profylScore Int?
-
-  tier Tier?
-
-  githubScore      Int?
-  projectsScore    Int?
-  leetcodeScore    Int?
-  consistencyScore Int?
-
-  radar           Json?
-  signalBreakdown Json?
-
-  profylPercentile Float?
-
-  computedAt DateTime?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ================================
-//AI INSIGHTS MODEL
-// ================================
-
-model AIInsights {
-  id String @id @default(cuid())
-
-  userId String @unique
-
-  aiSignal  String?
-  aiSummary String?
-
-  strengthChips Json?
-
-  sourceHash   String?
-  modelVersion String?
-
-  generatedAt DateTime?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }

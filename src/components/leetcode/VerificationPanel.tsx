@@ -19,7 +19,7 @@ export function VerificationPanel({ onVerify }: VerificationPanelProps) {
   const [copied, setCopied] = useState(false);
 
   const steps = [
-    "Copy the verification code above.",
+    "Generate and copy the verification code above.",
     "Open your LeetCode profile and edit your README.",
     "Paste the code into your README and save.",
     "Return here and click Verify.",
