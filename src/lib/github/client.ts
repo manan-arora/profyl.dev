@@ -4,6 +4,8 @@ import {
   GithubProfile,
   GithubRepository,
   GithubSearchIssuesResponse,
+  GithubRepositoryTree,
+  GithubFileContentResponse,
 } from "@/types/github";
 
 const GITHUB_API_BASE_URL = "https://api.github.com";
@@ -140,4 +142,60 @@ export async function getGithubRepositoryLanguages(
   return response;
 }
 
+export async function getGithubRepositoryTree(
+  accessToken: string,
+  owner: string,
+  repo: string,
+  branch: string
+): Promise<GithubRepositoryTree> {
+  const endpoint = `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(
+    repo
+  )}/git/trees/${encodeURIComponent(branch)}?recursive=1`;
+  
+  const response = await request<GithubRepositoryTree>(endpoint, accessToken);
+  
+  if (!response || !Array.isArray(response.tree)) {
+    throw new Error("GitHub Git Trees API response missing tree or malformed");
+  }
+  
+  return response;
+}
 
+export async function getGithubFileContent(
+  accessToken: string,
+  owner: string,
+  repo: string,
+  path: string,
+  branch: string
+): Promise<string> {
+  const encodedPath = path
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+  const endpoint = `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(
+    repo
+  )}/contents/${encodedPath}?ref=${encodeURIComponent(branch)}`;
+
+  const response = await request<GithubFileContentResponse | GithubFileContentResponse[]>(
+    endpoint,
+    accessToken
+  );
+
+  if (Array.isArray(response) || !response || typeof response !== "object") {
+    throw new Error(`GitHub contents API returned non-file response for path: ${path}`);
+  }
+
+  if (response.type !== "file") {
+    throw new Error(`GitHub contents API path is not a file: ${path} (type: ${response.type})`);
+  }
+
+  if (typeof response.content !== "string") {
+    throw new Error(`GitHub contents API response missing content for path: ${path}`);
+  }
+
+  if (response.encoding === "base64") {
+    return Buffer.from(response.content, "base64").toString("utf-8");
+  }
+
+  return response.content;
+}

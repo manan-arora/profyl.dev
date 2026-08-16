@@ -103,4 +103,30 @@ export interface GithubSearchIssuesResponse {
   total_count: number;
 }
 
+export interface GithubTreeEntry {
+  path: string;
+  type: "blob" | "tree";
+  sha: string;
+  size?: number;
+  url: string;
+}
+
+export interface GithubRepositoryTree {
+  sha: string;
+  url: string;
+  tree: GithubTreeEntry[];
+  truncated: boolean;
+}
+
+export interface GithubFileContentResponse {
+  type: string;
+  encoding?: string;
+  size: number;
+  name: string;
+  path: string;
+  content?: string;
+  sha: string;
+}
+
+
 
