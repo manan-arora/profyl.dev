@@ -170,9 +170,8 @@ enum ProfileStatus {
 }
 
 enum Tier {
-  BRONZE
-  SILVER
-  GOLD
-  PLATINUM
-  DIAMOND
+  S
+  A
+  B
+  C
 }
