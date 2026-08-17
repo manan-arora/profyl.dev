@@ -3,6 +3,7 @@ import { PackageJsonParser } from "./parsers/package-json-parser";
 import { RequirementsTxtParser } from "./parsers/requirements-txt-parser";
 import { PyprojectTomlParser } from "./parsers/pyproject-toml-parser";
 import { PomXmlParser } from "./parsers/pom-xml-parser";
+import { GradleParser } from "./parsers/gradle-parser";
 
 /**
  * Static mapping of SupportedManifest types to ManifestParser implementations.
@@ -12,6 +13,8 @@ const PARSER_MAP: Partial<Record<SupportedManifest, ManifestParser>> = {
   "requirements.txt": new RequirementsTxtParser(),
   "pyproject.toml": new PyprojectTomlParser(),
   "pom.xml": new PomXmlParser(),
+  "build.gradle": new GradleParser(),
+  "build.gradle.kts": new GradleParser(),
 };
 
 /**

@@ -1,5 +1,9 @@
 import { getGithubFileContent } from "@/lib/github/client";
-import { DiscoveredManifest, ParsedManifest } from "@/types/scanner";
+import {
+  ContextualManifestParser,
+  DiscoveredManifest,
+  ParsedManifest,
+} from "@/types/scanner";
 import { getParser } from "./parser-registry";
 
 export interface ParseManifestOptions {
@@ -8,6 +12,32 @@ export interface ParseManifestOptions {
   repo: string;
   accessToken: string;
   branch: string;
+  gradleVersionCatalogContent?: string;
+}
+
+function isContextualManifestParser(
+  parser: object
+): parser is ContextualManifestParser {
+  return "parseWithContext" in parser && typeof parser.parseWithContext === "function";
+}
+
+const ROOT_GRADLE_VERSION_CATALOG_PATH = "gradle/libs.versions.toml";
+
+// Gradle catalogs are intentionally resolved only from the repository root.
+// No ancestor-directory probing is performed here.
+export async function getRootGradleVersionCatalogContent(
+  accessToken: string,
+  owner: string,
+  repo: string,
+  branch: string
+): Promise<string> {
+  return getGithubFileContent(
+    accessToken,
+    owner,
+    repo,
+    ROOT_GRADLE_VERSION_CATALOG_PATH,
+    branch
+  );
 }
 
 /**
@@ -23,6 +53,7 @@ export async function parseDiscoveredManifest({
   repo,
   accessToken,
   branch,
+  gradleVersionCatalogContent,
 }: ParseManifestOptions): Promise<ParsedManifest> {
   const parser = getParser(manifest.type);
   if (!parser) {
@@ -37,7 +68,19 @@ export async function parseDiscoveredManifest({
     branch
   );
 
-  const dependencies = parser.parse(content);
+  let dependencies: string[];
+
+  if (isContextualManifestParser(parser)) {
+    dependencies = parser.parseWithContext(content, {
+      manifestPath: manifest.path,
+      gradleVersionCatalogContent:
+        manifest.type === "build.gradle" || manifest.type === "build.gradle.kts"
+          ? gradleVersionCatalogContent
+          : undefined,
+    });
+  } else {
+    dependencies = parser.parse(content);
+  }
 
   return {
     manifest,

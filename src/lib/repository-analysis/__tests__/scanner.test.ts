@@ -65,6 +65,7 @@ describe("scanRepository", () => {
         { path: "backend/pom.xml", type: "pom.xml" },
       ],
       truncated: true,
+      hasRootGradleVersionCatalog: false,
     });
   });
 

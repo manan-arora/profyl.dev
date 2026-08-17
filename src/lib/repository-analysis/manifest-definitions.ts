@@ -6,6 +6,7 @@ export const SUPPORTED_MANIFESTS: ReadonlySet<string> = new Set<SupportedManifes
   "pyproject.toml",
   "pom.xml",
   "build.gradle",
+  "build.gradle.kts",
   "go.mod",
 ]);
 

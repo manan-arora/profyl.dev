@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { GithubTreeEntry } from "@/types/github";
-import { discoverManifests, getPathDepth, DEFAULT_MAX_SCAN_DEPTH } from "../discovery";
+import { discoverManifests, getPathDepth } from "../discovery";
 
 describe("getPathDepth", () => {
   it("should return 0 for root files", () => {
@@ -15,7 +15,7 @@ describe("getPathDepth", () => {
 });
 
 describe("discoverManifests", () => {
-  it("Test 1 — should discover root manifest", () => {
+  it("Test 1 - should discover root manifest", () => {
     const tree: GithubTreeEntry[] = [
       { path: "package.json", type: "blob", sha: "s1", url: "u1" },
     ];
@@ -26,7 +26,7 @@ describe("discoverManifests", () => {
     ]);
   });
 
-  it("Test 2 — should discover nested manifest", () => {
+  it("Test 2 - should discover nested manifest", () => {
     const tree: GithubTreeEntry[] = [
       { path: "backend/pom.xml", type: "blob", sha: "s1", url: "u1" },
     ];
@@ -37,7 +37,7 @@ describe("discoverManifests", () => {
     ]);
   });
 
-  it("Test 3 — should discover multiple manifests", () => {
+  it("Test 3 - should discover multiple manifests", () => {
     const tree: GithubTreeEntry[] = [
       { path: "frontend/package.json", type: "blob", sha: "s1", url: "u1" },
       { path: "backend/pom.xml", type: "blob", sha: "s2", url: "u2" },
@@ -52,7 +52,7 @@ describe("discoverManifests", () => {
     ]);
   });
 
-  it("Test 4 — should preserve same manifest filename at multiple paths", () => {
+  it("Test 4 - should preserve same manifest filename at multiple paths", () => {
     const tree: GithubTreeEntry[] = [
       { path: "apps/web/package.json", type: "blob", sha: "s1", url: "u1" },
       { path: "apps/api/package.json", type: "blob", sha: "s2", url: "u2" },
@@ -65,7 +65,7 @@ describe("discoverManifests", () => {
     ]);
   });
 
-  it("Test 5 — should ignore unsupported files", () => {
+  it("Test 5 - should ignore unsupported files", () => {
     const tree: GithubTreeEntry[] = [
       { path: "README.md", type: "blob", sha: "s1", url: "u1" },
       { path: "src/index.ts", type: "blob", sha: "s2", url: "u2" },
@@ -77,22 +77,22 @@ describe("discoverManifests", () => {
     expect(result).toEqual([]);
   });
 
-  it("Test 6 — should ignore directory/tree entries", () => {
+  it("Test 6 - should ignore directory/tree entries", () => {
     const tree: GithubTreeEntry[] = [
       { path: "backend", type: "tree", sha: "s1", url: "u1" },
-      { path: "package.json", type: "tree", sha: "s2", url: "u2" }, // edge case: directory named package.json
+      { path: "package.json", type: "tree", sha: "s2", url: "u2" },
     ];
 
     const result = discoverManifests(tree);
     expect(result).toEqual([]);
   });
 
-  it("Test 7 — should respect maxDepth", () => {
+  it("Test 7 - should respect maxDepth", () => {
     const tree: GithubTreeEntry[] = [
-      { path: "package.json", type: "blob", sha: "s0", url: "u0" }, // depth 0
-      { path: "backend/pom.xml", type: "blob", sha: "s1", url: "u1" }, // depth 1
-      { path: "apps/api/pom.xml", type: "blob", sha: "s2", url: "u2" }, // depth 2
-      { path: "apps/api/service/go.mod", type: "blob", sha: "s3", url: "u3" }, // depth 3
+      { path: "package.json", type: "blob", sha: "s0", url: "u0" },
+      { path: "backend/pom.xml", type: "blob", sha: "s1", url: "u1" },
+      { path: "apps/api/pom.xml", type: "blob", sha: "s2", url: "u2" },
+      { path: "apps/api/service/go.mod", type: "blob", sha: "s3", url: "u3" },
     ];
 
     expect(discoverManifests(tree, 0)).toEqual([
@@ -111,7 +111,7 @@ describe("discoverManifests", () => {
     ]);
   });
 
-  it("Test 8 — should exclude build.gradle.kts and Kotlin manifests", () => {
+  it("Test 8 - should include Gradle Groovy and Kotlin manifests but exclude unrelated Kotlin files", () => {
     const tree: GithubTreeEntry[] = [
       { path: "build.gradle.kts", type: "blob", sha: "s1", url: "u1" },
       { path: "app/build.gradle.kts", type: "blob", sha: "s2", url: "u2" },
@@ -121,15 +121,17 @@ describe("discoverManifests", () => {
 
     const result = discoverManifests(tree);
     expect(result).toEqual([
+      { path: "build.gradle.kts", type: "build.gradle.kts" },
+      { path: "app/build.gradle.kts", type: "build.gradle.kts" },
       { path: "build.gradle", type: "build.gradle" },
     ]);
   });
 
-  it("Test 9 — should handle empty tree", () => {
+  it("Test 9 - should handle empty tree", () => {
     expect(discoverManifests([])).toEqual([]);
   });
 
-  it("Test 10 — should validate maxDepth parameter", () => {
+  it("Test 10 - should validate maxDepth parameter", () => {
     const tree: GithubTreeEntry[] = [];
 
     expect(() => discoverManifests(tree, -1)).toThrow(

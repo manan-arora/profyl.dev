@@ -2,39 +2,37 @@ import { describe, it, expect } from "vitest";
 import { isSupportedManifest, SUPPORTED_MANIFESTS } from "../manifest-definitions";
 
 describe("Supported Manifest Registry", () => {
-  it("should contain exactly the six V1 manifests", () => {
+  it("should contain exactly the seven V1 manifests", () => {
     const expected = [
       "package.json",
       "requirements.txt",
       "pyproject.toml",
       "pom.xml",
       "build.gradle",
+      "build.gradle.kts",
       "go.mod",
     ];
     
-    expect(SUPPORTED_MANIFESTS.size).toBe(6);
+    expect(SUPPORTED_MANIFESTS.size).toBe(7);
     for (const manifest of expected) {
-      expect(SUPPORTED_MANIFESTS.has(manifest as any)).toBe(true);
+      expect(SUPPORTED_MANIFESTS.has(manifest)).toBe(true);
     }
   });
 
-  it("should recognize all six V1 manifests via isSupportedManifest", () => {
+  it("should recognize all seven V1 manifests via isSupportedManifest", () => {
     const manifests = [
       "package.json",
       "requirements.txt",
       "pyproject.toml",
       "pom.xml",
       "build.gradle",
+      "build.gradle.kts",
       "go.mod",
     ];
 
     for (const manifest of manifests) {
       expect(isSupportedManifest(manifest)).toBe(true);
     }
-  });
-
-  it("should NOT recognize build.gradle.kts", () => {
-    expect(isSupportedManifest("build.gradle.kts")).toBe(false);
   });
 
   it("should NOT recognize Kotlin-specific or Gradle Kotlin DSL manifests", () => {

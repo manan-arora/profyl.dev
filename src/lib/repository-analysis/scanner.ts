@@ -2,6 +2,8 @@ import { getGithubRepositoryTree } from "@/lib/github/client";
 import { DEFAULT_MAX_SCAN_DEPTH, discoverManifests } from "./discovery";
 import { RepositoryScanResult } from "@/types/scanner";
 
+const ROOT_GRADLE_VERSION_CATALOG_PATH = "gradle/libs.versions.toml";
+
 export interface ScanRepositoryOptions {
   repositoryId: string;
   owner: string;
@@ -35,10 +37,15 @@ export async function scanRepository({
   );
 
   const manifests = discoverManifests(treeResult.tree, maxDepth);
+  const hasRootGradleVersionCatalog = treeResult.tree.some(
+    (entry) =>
+      entry.type === "blob" && entry.path === ROOT_GRADLE_VERSION_CATALOG_PATH
+  );
 
   return {
     repositoryId,
     manifests,
     truncated: treeResult.truncated,
+    hasRootGradleVersionCatalog,
   };
 }
