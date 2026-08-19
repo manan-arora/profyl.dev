@@ -45,4 +45,7 @@ export interface ParsedManifest {
   dependencies: string[];
 }
 
-
+export interface RepositoryAnalysisResult {
+  scan: RepositoryScanResult;
+  parsedManifests: ParsedManifest[];
+}
