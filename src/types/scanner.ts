@@ -12,6 +12,21 @@ export interface DiscoveredManifest {
   type: SupportedManifest;
 }
 
+export type SupportedArtifact =
+  | "dockerfile"
+  | "docker-compose"
+  | "github-actions"
+  | "vercel"
+  | "render"
+  | "netlify"
+  | "firebase"
+  | "terraform";
+
+export interface DiscoveredArtifact {
+  path: string;
+  type: SupportedArtifact;
+}
+
 export interface RepositoryScanResult {
   repositoryId: string;
   manifests: DiscoveredManifest[];
