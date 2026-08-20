@@ -282,6 +282,7 @@ plugins {
     const scan: RepositoryScanResult = {
       repositoryId: "repo_123",
       manifests: [{ path: "package.json", type: "package.json" }],
+      artifacts: [{ path: "Dockerfile", type: "dockerfile" }],
       truncated: false,
       hasRootGradleVersionCatalog: false,
     };
@@ -313,11 +314,18 @@ plugins {
       maxDepth: undefined,
     });
     expect(result).toEqual({
-      scan,
+      repositoryId: "repo_123",
       parsedManifests: [
         { manifest: scan.manifests[0], dependencies: ["next"] },
       ],
+      artifacts: [{ path: "Dockerfile", type: "dockerfile" }],
     });
+
+    // Verify it doesn't expose any unwanted/raw scan fields
+    expect(result).not.toHaveProperty("scan");
+    expect(result).not.toHaveProperty("manifests");
+    expect(result).not.toHaveProperty("truncated");
+    expect(result).not.toHaveProperty("hasRootGradleVersionCatalog");
   });
 
   it("should throw an error when no parser is registered for the manifest type", async () => {

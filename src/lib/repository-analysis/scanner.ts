@@ -1,6 +1,7 @@
 import { getGithubRepositoryTree } from "@/lib/github/client";
 import { DEFAULT_MAX_SCAN_DEPTH, discoverManifests } from "./discovery";
 import { RepositoryScanResult } from "@/types/scanner";
+import { discoverArtifacts } from "./artifacts/artifact-discovery";
 
 const ROOT_GRADLE_VERSION_CATALOG_PATH = "gradle/libs.versions.toml";
 
@@ -14,12 +15,12 @@ export interface ScanRepositoryOptions {
 }
 
 /**
- * Scans a GitHub repository to discover supported manifest files.
+ * Scans a GitHub repository to discover supported manifest files and artifacts.
  *
  * Flow:
  * 1. Fetch recursive repository tree via existing GitHub client.
- * 2. Run discoverManifests on tree entries.
- * 3. Return RepositoryScanResult preserving repositoryId, discovered manifests, and truncation status.
+ * 2. Run discoverManifests and discoverArtifacts on tree entries.
+ * 3. Return RepositoryScanResult preserving repositoryId, discovered manifests, artifacts, and truncation status.
  */
 export async function scanRepository({
   repositoryId,
@@ -37,6 +38,7 @@ export async function scanRepository({
   );
 
   const manifests = discoverManifests(treeResult.tree, maxDepth);
+  const artifacts = discoverArtifacts(treeResult.tree, maxDepth);
   const hasRootGradleVersionCatalog = treeResult.tree.some(
     (entry) =>
       entry.type === "blob" && entry.path === ROOT_GRADLE_VERSION_CATALOG_PATH
@@ -45,6 +47,7 @@ export async function scanRepository({
   return {
     repositoryId,
     manifests,
+    artifacts,
     truncated: treeResult.truncated,
     hasRootGradleVersionCatalog,
   };

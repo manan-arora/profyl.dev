@@ -30,6 +30,7 @@ export interface DiscoveredArtifact {
 export interface RepositoryScanResult {
   repositoryId: string;
   manifests: DiscoveredManifest[];
+  artifacts: DiscoveredArtifact[];
   truncated: boolean;
   hasRootGradleVersionCatalog: boolean;
 }
@@ -61,6 +62,7 @@ export interface ParsedManifest {
 }
 
 export interface RepositoryAnalysisResult {
-  scan: RepositoryScanResult;
+  repositoryId: string;
   parsedManifests: ParsedManifest[];
+  artifacts: DiscoveredArtifact[];
 }

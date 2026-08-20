@@ -183,7 +183,8 @@ export async function analyzeRepository({
   });
 
   return {
-    scan,
+    repositoryId: scan.repositoryId,
     parsedManifests,
+    artifacts: scan.artifacts,
   };
 }
