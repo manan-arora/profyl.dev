@@ -1,13 +1,13 @@
 import { TechnologyDefinition } from "../technology-types";
 
-export const deploymentTechnologies: TechnologyDefinition[] = [
+export const infrastructureTechnologies: TechnologyDefinition[] = [
   {
     id: "vercel",
     name: "Vercel",
     detection: {
       artifact: ["vercel"],
     },
-    signals: ["Deployment"],
+    signals: ["Infrastructure"],
   },
   {
     id: "render",
@@ -15,7 +15,7 @@ export const deploymentTechnologies: TechnologyDefinition[] = [
     detection: {
       artifact: ["render"],
     },
-    signals: ["Deployment"],
+    signals: ["Infrastructure"],
   },
   {
     id: "netlify",
@@ -23,7 +23,7 @@ export const deploymentTechnologies: TechnologyDefinition[] = [
     detection: {
       artifact: ["netlify"],
     },
-    signals: ["Deployment"],
+    signals: ["Infrastructure"],
   },
   {
     id: "docker",
@@ -31,7 +31,7 @@ export const deploymentTechnologies: TechnologyDefinition[] = [
     detection: {
       artifact: ["dockerfile"],
     },
-    signals: ["Containerization"],
+    signals: ["Infrastructure"],
   },
   {
     id: "docker-compose",
@@ -39,7 +39,7 @@ export const deploymentTechnologies: TechnologyDefinition[] = [
     detection: {
       artifact: ["docker-compose"],
     },
-    signals: ["Containerization"],
+    signals: ["Infrastructure"],
   },
   {
     id: "github-actions",
@@ -47,7 +47,7 @@ export const deploymentTechnologies: TechnologyDefinition[] = [
     detection: {
       artifact: ["github-actions"],
     },
-    signals: ["CI/CD"],
+    signals: ["Infrastructure"],
   },
   {
     id: "terraform",

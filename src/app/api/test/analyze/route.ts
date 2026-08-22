@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { analyzeRepository } from "@/lib/repository-analysis/orchestration";
-import { detectTechnologies } from "@/lib/repository-analysis/technologies/technology-detector";
 
 export async function POST(request: Request) {
   try {
@@ -25,11 +24,6 @@ export async function POST(request: Request) {
       branch,
     });
 
-    const technologies = detectTechnologies(
-      analysisResult.parsedManifests,
-      analysisResult.artifacts
-    );
-
     return NextResponse.json({
       repositoryId: analysisResult.repositoryId,
       owner,
@@ -37,7 +31,7 @@ export async function POST(request: Request) {
       branch,
       parsedManifests: analysisResult.parsedManifests,
       artifacts: analysisResult.artifacts,
-      technologies,
+      technologies: analysisResult.technologies,
     });
   } catch (error: any) {
     console.error("Test harness analysis failed:", error);

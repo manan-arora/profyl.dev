@@ -5,7 +5,7 @@ import { databaseTechnologies } from "./registry/database";
 import { authenticationTechnologies } from "./registry/authentication";
 import { integrationsTechnologies } from "./registry/integrations";
 import { aiMlTechnologies } from "./registry/ai-ml";
-import { deploymentTechnologies } from "./registry/deployment";
+import { infrastructureTechnologies } from "./registry/infrastructure";
 import { cachingTechnologies } from "./registry/caching";
 import { realtimeTechnologies } from "./registry/realtime";
 import { backgroundJobsTechnologies } from "./registry/background-jobs";
@@ -20,7 +20,7 @@ export const technologyRegistry: TechnologyDefinition[] = [
   ...authenticationTechnologies,
   ...integrationsTechnologies,
   ...aiMlTechnologies,
-  ...deploymentTechnologies,
+  ...infrastructureTechnologies,
   ...cachingTechnologies,
   ...realtimeTechnologies,
   ...backgroundJobsTechnologies,

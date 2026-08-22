@@ -1,3 +1,5 @@
+import type { DetectedTechnology } from "@/lib/repository-analysis/technologies/technology-types";
+
 export type SupportedManifest =
   | "package.json"
   | "requirements.txt"
@@ -65,4 +67,5 @@ export interface RepositoryAnalysisResult {
   repositoryId: string;
   parsedManifests: ParsedManifest[];
   artifacts: DiscoveredArtifact[];
+  technologies: DetectedTechnology[];
 }

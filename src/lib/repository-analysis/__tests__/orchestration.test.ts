@@ -319,6 +319,33 @@ plugins {
         { manifest: scan.manifests[0], dependencies: ["next"] },
       ],
       artifacts: [{ path: "Dockerfile", type: "dockerfile" }],
+      technologies: [
+        {
+          technologyId: "docker",
+          name: "Docker",
+          signals: ["Infrastructure"],
+          evidence: [
+            {
+              source: "artifact",
+              identifier: "dockerfile",
+              path: "Dockerfile",
+            },
+          ],
+        },
+        {
+          technologyId: "nextjs",
+          name: "Next.js",
+          signals: ["Frontend", "Backend"],
+          evidence: [
+            {
+              source: "manifest",
+              ecosystem: "npm",
+              identifier: "next",
+              path: "package.json",
+            },
+          ],
+        },
+      ],
     });
 
     // Verify it doesn't expose any unwanted/raw scan fields

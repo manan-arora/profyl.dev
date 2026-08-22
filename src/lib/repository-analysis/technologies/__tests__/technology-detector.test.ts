@@ -57,7 +57,7 @@ describe("detectTechnologies", () => {
     // Authentication
     expect(detectedIds).toContain("spring-security");
 
-    // Deployment
+    // Infrastructure
     expect(detectedIds).toContain("docker");
     expect(detectedIds).toContain("vercel");
 

@@ -8,6 +8,7 @@ import {
 } from "@/types/scanner";
 import { scanRepository, ScanRepositoryOptions } from "./scanner";
 import { getParser } from "./parser-registry";
+import { detectTechnologies } from "./technologies/technology-detector";
 
 export interface ParseManifestOptions {
   manifest: DiscoveredManifest;
@@ -182,9 +183,12 @@ export async function analyzeRepository({
     branch,
   });
 
+  const technologies = detectTechnologies(parsedManifests, scan.artifacts);
+
   return {
     repositoryId: scan.repositoryId,
     parsedManifests,
     artifacts: scan.artifacts,
+    technologies,
   };
 }
