@@ -37,6 +37,10 @@ interface AnalysisResult {
   parsedManifests: ParsedManifest[];
   artifacts: DiscoveredArtifact[];
   technologies: DetectedTechnology[];
+  technicalRange?: {
+    score: number;
+    signals: string[];
+  };
 }
 
 export default function TestHarness() {
@@ -185,7 +189,7 @@ export default function TestHarness() {
 
       {result && (
         <div>
-          <div style={{ marginBottom: "2rem", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1rem" }}>
+          <div style={{ marginBottom: "2rem", display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "1rem" }}>
             <div style={{ backgroundColor: "#1f2937", padding: "0.75rem", borderRadius: "6px", textAlign: "center" }}>
               <div style={{ fontSize: "0.75rem", color: "#9ca3af", marginBottom: "0.25rem" }}>Repo</div>
               <div style={{ fontWeight: "bold" }}>{result.owner}/{result.repo}</div>
@@ -202,7 +206,26 @@ export default function TestHarness() {
               <div style={{ fontSize: "0.75rem", color: "#9ca3af", marginBottom: "0.25rem" }}>Artifacts</div>
               <div style={{ fontWeight: "bold", color: "#c7ff41" }}>{result.artifacts.length}</div>
             </div>
+            <div style={{ backgroundColor: "#1f2937", padding: "0.75rem", borderRadius: "6px", textAlign: "center", border: "1px solid #374151" }}>
+              <div style={{ fontSize: "0.75rem", color: "#9ca3af", marginBottom: "0.25rem" }}>Technical Range</div>
+              <div style={{ fontWeight: "bold", color: "#c7ff41", fontSize: "1.125rem" }}>{result.technicalRange?.score ?? 0}</div>
+            </div>
           </div>
+
+          {result.technicalRange?.signals && result.technicalRange.signals.length > 0 && (
+            <div style={{ backgroundColor: "#1f2937", padding: "1rem", borderRadius: "6px", marginBottom: "2rem", border: "1px solid #374151" }}>
+              <div style={{ fontSize: "0.875rem", color: "#9ca3af", marginBottom: "0.5rem", fontWeight: "bold" }}>
+                Technical Range Signals ({result.technicalRange.signals.length})
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                {result.technicalRange.signals.map((sig) => (
+                  <span key={sig} style={{ backgroundColor: "#374151", color: "#c7ff41", padding: "0.25rem 0.5rem", borderRadius: "4px", fontSize: "0.75rem", fontWeight: "500" }}>
+                    {sig}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           <section style={{ marginBottom: "2rem" }}>
             <h2 style={{ fontSize: "1.25rem", fontWeight: "bold", color: "#c7ff41", marginBottom: "0.75rem", borderBottom: "1px solid #374151", paddingBottom: "0.25rem" }}>

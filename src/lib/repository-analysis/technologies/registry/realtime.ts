@@ -9,7 +9,7 @@ export const realtimeTechnologies: TechnologyDefinition[] = [
         npm: ["socket.io", "socket.io-client"],
       },
     },
-    signals: ["WebSockets"],
+    signals: ["Real-time"],
   },
   {
     id: "ws",
@@ -19,7 +19,7 @@ export const realtimeTechnologies: TechnologyDefinition[] = [
         npm: ["ws"],
       },
     },
-    signals: ["WebSockets"],
+    signals: ["Real-time"],
   },
   {
     id: "pusher",
@@ -30,6 +30,6 @@ export const realtimeTechnologies: TechnologyDefinition[] = [
         python: ["pusher"],
       },
     },
-    signals: ["WebSockets"],
+    signals: ["Real-time"],
   },
 ];

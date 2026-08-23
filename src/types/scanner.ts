@@ -63,9 +63,15 @@ export interface ParsedManifest {
   dependencies: string[];
 }
 
+export interface TechnicalRangeResult {
+  score: number;
+  signals: string[];
+}
+
 export interface RepositoryAnalysisResult {
   repositoryId: string;
   parsedManifests: ParsedManifest[];
   artifacts: DiscoveredArtifact[];
   technologies: DetectedTechnology[];
+  technicalRange: TechnicalRangeResult;
 }

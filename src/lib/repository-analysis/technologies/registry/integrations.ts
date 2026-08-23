@@ -12,7 +12,7 @@ export const integrationsTechnologies: TechnologyDefinition[] = [
         go: ["github.com/openai/openai-go"],
       },
     },
-    signals: ["External Integration"],
+    signals: ["External Integrations"],
   },
   {
     id: "google-gemini",
@@ -25,7 +25,7 @@ export const integrationsTechnologies: TechnologyDefinition[] = [
         go: ["github.com/google/generative-ai-go"],
       },
     },
-    signals: ["External Integration"],
+    signals: ["External Integrations"],
   },
   {
     id: "anthropic",
@@ -36,7 +36,7 @@ export const integrationsTechnologies: TechnologyDefinition[] = [
         python: ["anthropic"],
       },
     },
-    signals: ["External Integration"],
+    signals: ["External Integrations"],
   },
   {
     id: "groq",
@@ -47,7 +47,7 @@ export const integrationsTechnologies: TechnologyDefinition[] = [
         python: ["groq"],
       },
     },
-    signals: ["External Integration"],
+    signals: ["External Integrations"],
   },
   {
     id: "mistral",
@@ -58,7 +58,7 @@ export const integrationsTechnologies: TechnologyDefinition[] = [
         python: ["mistralai"],
       },
     },
-    signals: ["External Integration"],
+    signals: ["External Integrations"],
   },
   {
     id: "cohere",
@@ -69,7 +69,7 @@ export const integrationsTechnologies: TechnologyDefinition[] = [
         python: ["cohere"],
       },
     },
-    signals: ["External Integration"],
+    signals: ["External Integrations"],
   },
   {
     id: "together-ai",
@@ -80,7 +80,7 @@ export const integrationsTechnologies: TechnologyDefinition[] = [
         python: ["together"],
       },
     },
-    signals: ["External Integration"],
+    signals: ["External Integrations"],
   },
   {
     id: "deepseek",
@@ -90,7 +90,7 @@ export const integrationsTechnologies: TechnologyDefinition[] = [
         npm: ["@ai-sdk/deepseek"],
       },
     },
-    signals: ["External Integration"],
+    signals: ["External Integrations"],
   },
   {
     id: "perplexity",
@@ -101,7 +101,7 @@ export const integrationsTechnologies: TechnologyDefinition[] = [
         python: ["perplexityai"],
       },
     },
-    signals: ["External Integration"],
+    signals: ["External Integrations"],
   },
   {
     id: "stripe",
@@ -114,7 +114,7 @@ export const integrationsTechnologies: TechnologyDefinition[] = [
         gradle: ["com.stripe:stripe-java"],
       },
     },
-    signals: ["External Integration"],
+    signals: ["External Integrations"],
   },
   {
     id: "razorpay",
@@ -125,7 +125,7 @@ export const integrationsTechnologies: TechnologyDefinition[] = [
         python: ["razorpay"],
       },
     },
-    signals: ["External Integration"],
+    signals: ["External Integrations"],
   },
   {
     id: "paypal",
@@ -139,7 +139,7 @@ export const integrationsTechnologies: TechnologyDefinition[] = [
         python: ["paypalrestsdk"],
       },
     },
-    signals: ["External Integration"],
+    signals: ["External Integrations"],
   },
   {
     id: "nodemailer",
@@ -149,7 +149,7 @@ export const integrationsTechnologies: TechnologyDefinition[] = [
         npm: ["nodemailer"],
       },
     },
-    signals: ["External Integration"],
+    signals: ["External Integrations"],
   },
   {
     id: "resend",
@@ -160,7 +160,7 @@ export const integrationsTechnologies: TechnologyDefinition[] = [
         python: ["resend"],
       },
     },
-    signals: ["External Integration"],
+    signals: ["External Integrations"],
   },
   {
     id: "sendgrid",
@@ -171,7 +171,7 @@ export const integrationsTechnologies: TechnologyDefinition[] = [
         python: ["sendgrid"],
       },
     },
-    signals: ["External Integration"],
+    signals: ["External Integrations"],
   },
   {
     id: "brevo",
@@ -182,7 +182,7 @@ export const integrationsTechnologies: TechnologyDefinition[] = [
         python: ["sib-api-v3-sdk"],
       },
     },
-    signals: ["External Integration"],
+    signals: ["External Integrations"],
   },
   {
     id: "twilio",
@@ -195,7 +195,7 @@ export const integrationsTechnologies: TechnologyDefinition[] = [
         gradle: ["com.twilio.sdk:twilio"],
       },
     },
-    signals: ["External Integration"],
+    signals: ["External Integrations"],
   },
   {
     id: "cloudinary",
@@ -206,7 +206,7 @@ export const integrationsTechnologies: TechnologyDefinition[] = [
         python: ["cloudinary"],
       },
     },
-    signals: ["External Integration"],
+    signals: ["External Integrations"],
   },
   {
     id: "sentry",
@@ -217,6 +217,6 @@ export const integrationsTechnologies: TechnologyDefinition[] = [
         python: ["sentry-sdk"],
       },
     },
-    signals: ["External Integration"],
+    signals: ["External Integrations"],
   },
 ];

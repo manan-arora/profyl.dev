@@ -10,7 +10,7 @@ export const aiMlTechnologies: TechnologyDefinition[] = [
         python: ["langchain", "langchain-core"],
       },
     },
-    signals: ["AI/ML"],
+    signals: ["AI / ML"],
   },
   {
     id: "llamaindex",
@@ -21,7 +21,7 @@ export const aiMlTechnologies: TechnologyDefinition[] = [
         python: ["llama-index"],
       },
     },
-    signals: ["AI/ML"],
+    signals: ["AI / ML"],
   },
   {
     id: "haystack",
@@ -31,7 +31,7 @@ export const aiMlTechnologies: TechnologyDefinition[] = [
         python: ["haystack-ai"],
       },
     },
-    signals: ["AI/ML"],
+    signals: ["AI / ML"],
   },
   {
     id: "semantic-kernel",
@@ -42,7 +42,7 @@ export const aiMlTechnologies: TechnologyDefinition[] = [
         python: ["semantic-kernel"],
       },
     },
-    signals: ["AI/ML"],
+    signals: ["AI / ML"],
   },
   {
     id: "dspy",
@@ -52,7 +52,7 @@ export const aiMlTechnologies: TechnologyDefinition[] = [
         python: ["dspy"],
       },
     },
-    signals: ["AI/ML"],
+    signals: ["AI / ML"],
   },
   {
     id: "crewai",
@@ -62,7 +62,7 @@ export const aiMlTechnologies: TechnologyDefinition[] = [
         python: ["crewai"],
       },
     },
-    signals: ["AI/ML"],
+    signals: ["AI / ML"],
   },
   {
     id: "chroma",
@@ -73,7 +73,7 @@ export const aiMlTechnologies: TechnologyDefinition[] = [
         python: ["chromadb"],
       },
     },
-    signals: ["AI/ML"],
+    signals: ["AI / ML"],
   },
   {
     id: "faiss",
@@ -83,7 +83,7 @@ export const aiMlTechnologies: TechnologyDefinition[] = [
         python: ["faiss-cpu", "faiss-gpu"],
       },
     },
-    signals: ["AI/ML"],
+    signals: ["AI / ML"],
   },
   {
     id: "pinecone",
@@ -94,7 +94,7 @@ export const aiMlTechnologies: TechnologyDefinition[] = [
         python: ["pinecone"],
       },
     },
-    signals: ["AI/ML"],
+    signals: ["AI / ML"],
   },
   {
     id: "qdrant",
@@ -105,7 +105,7 @@ export const aiMlTechnologies: TechnologyDefinition[] = [
         python: ["qdrant-client"],
       },
     },
-    signals: ["AI/ML"],
+    signals: ["AI / ML"],
   },
   {
     id: "weaviate",
@@ -116,7 +116,7 @@ export const aiMlTechnologies: TechnologyDefinition[] = [
         python: ["weaviate-client"],
       },
     },
-    signals: ["AI/ML"],
+    signals: ["AI / ML"],
   },
   {
     id: "pgvector",
@@ -129,7 +129,7 @@ export const aiMlTechnologies: TechnologyDefinition[] = [
         gradle: ["com.pgvector:pgvector"],
       },
     },
-    signals: ["AI/ML"],
+    signals: ["AI / ML"],
   },
   {
     id: "pytorch",
@@ -139,7 +139,7 @@ export const aiMlTechnologies: TechnologyDefinition[] = [
         python: ["torch"],
       },
     },
-    signals: ["AI/ML"],
+    signals: ["AI / ML"],
   },
   {
     id: "tensorflow",
@@ -150,7 +150,7 @@ export const aiMlTechnologies: TechnologyDefinition[] = [
         python: ["tensorflow"],
       },
     },
-    signals: ["AI/ML"],
+    signals: ["AI / ML"],
   },
   {
     id: "keras",
@@ -160,7 +160,7 @@ export const aiMlTechnologies: TechnologyDefinition[] = [
         python: ["keras"],
       },
     },
-    signals: ["AI/ML"],
+    signals: ["AI / ML"],
   },
   {
     id: "scikit-learn",
@@ -170,7 +170,7 @@ export const aiMlTechnologies: TechnologyDefinition[] = [
         python: ["scikit-learn"],
       },
     },
-    signals: ["AI/ML"],
+    signals: ["AI / ML"],
   },
   {
     id: "huggingface-transformers",
@@ -181,7 +181,7 @@ export const aiMlTechnologies: TechnologyDefinition[] = [
         python: ["transformers"],
       },
     },
-    signals: ["AI/ML"],
+    signals: ["AI / ML"],
   },
   {
     id: "sentence-transformers",
@@ -191,7 +191,7 @@ export const aiMlTechnologies: TechnologyDefinition[] = [
         python: ["sentence-transformers"],
       },
     },
-    signals: ["AI/ML"],
+    signals: ["AI / ML"],
   },
   {
     id: "spacy",
@@ -201,7 +201,7 @@ export const aiMlTechnologies: TechnologyDefinition[] = [
         python: ["spacy"],
       },
     },
-    signals: ["AI/ML"],
+    signals: ["AI / ML"],
   },
   {
     id: "ollama",
@@ -212,7 +212,7 @@ export const aiMlTechnologies: TechnologyDefinition[] = [
         python: ["ollama"],
       },
     },
-    signals: ["AI/ML"],
+    signals: ["AI / ML"],
   },
   {
     id: "vllm",
@@ -222,6 +222,6 @@ export const aiMlTechnologies: TechnologyDefinition[] = [
         python: ["vllm"],
       },
     },
-    signals: ["AI/ML"],
+    signals: ["AI / ML"],
   },
 ];

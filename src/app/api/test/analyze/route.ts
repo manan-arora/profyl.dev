@@ -32,6 +32,7 @@ export async function POST(request: Request) {
       parsedManifests: analysisResult.parsedManifests,
       artifacts: analysisResult.artifacts,
       technologies: analysisResult.technologies,
+      technicalRange: analysisResult.technicalRange,
     });
   } catch (error: any) {
     console.error("Test harness analysis failed:", error);

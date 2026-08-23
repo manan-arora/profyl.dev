@@ -169,7 +169,7 @@ describe("detectTechnologies", () => {
   });
 
   // 12. LLM APIs producing External Integration, not AI/ML
-  it("should detect OpenAI and Google Gemini as External Integration, not AI/ML", () => {
+  it("should detect OpenAI and Google Gemini as External Integrations, not AI / ML", () => {
     const manifests = [
       createManifest("package.json", "package.json", ["openai", "@google/generative-ai"]),
     ];
@@ -178,21 +178,21 @@ describe("detectTechnologies", () => {
     const gemini = results.find((r) => r.technologyId === "google-gemini");
 
     expect(openai).toBeDefined();
-    expect(openai!.signals).toContain("External Integration");
-    expect(openai!.signals).not.toContain("AI/ML");
+    expect(openai!.signals).toContain("External Integrations");
+    expect(openai!.signals).not.toContain("AI / ML");
 
     expect(gemini).toBeDefined();
-    expect(gemini!.signals).toContain("External Integration");
-    expect(gemini!.signals).not.toContain("AI/ML");
+    expect(gemini!.signals).toContain("External Integrations");
+    expect(gemini!.signals).not.toContain("AI / ML");
   });
 
   // 13. AI/ML frameworks producing AI/ML
-  it("should detect LangChain as AI/ML", () => {
+  it("should detect LangChain as AI / ML", () => {
     const manifests = [createManifest("package.json", "package.json", ["langchain"])];
     const results = detectTechnologies(manifests, []);
     const langchain = results.find((r) => r.technologyId === "langchain");
     expect(langchain).toBeDefined();
-    expect(langchain!.signals).toContain("AI/ML");
+    expect(langchain!.signals).toContain("AI / ML");
     expect(langchain!.signals).toHaveLength(1);
   });
 
