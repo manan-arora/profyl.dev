@@ -1,4 +1,4 @@
-import type { DetectedTechnology } from "@/lib/repository-analysis/technologies/technology-types";
+import type { DetectedTechnology } from "@/lib/analytics/repository-analysis/technologies/technology-types";
 
 export type SupportedManifest =
   | "package.json"
@@ -73,5 +73,4 @@ export interface RepositoryAnalysisResult {
   parsedManifests: ParsedManifest[];
   artifacts: DiscoveredArtifact[];
   technologies: DetectedTechnology[];
-  technicalRange: TechnicalRangeResult;
 }

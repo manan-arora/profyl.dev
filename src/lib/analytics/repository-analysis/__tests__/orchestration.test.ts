@@ -346,10 +346,6 @@ plugins {
           ],
         },
       ],
-      technicalRange: {
-        score: 25,
-        signals: ["Infrastructure", "Frontend", "Backend"],
-      },
     });
 
     // Verify it doesn't expose any unwanted/raw scan fields

@@ -9,7 +9,6 @@ import {
 import { scanRepository, ScanRepositoryOptions } from "./scanner";
 import { getParser } from "./parser-registry";
 import { detectTechnologies } from "./technologies/technology-detector";
-import { calculateTechnicalRange } from "./scoring/range-scorer";
 
 export interface ParseManifestOptions {
   manifest: DiscoveredManifest;
@@ -185,13 +184,11 @@ export async function analyzeRepository({
   });
 
   const technologies = detectTechnologies(parsedManifests, scan.artifacts);
-  const technicalRange = calculateTechnicalRange(technologies);
 
   return {
     repositoryId: scan.repositoryId,
     parsedManifests,
     artifacts: scan.artifacts,
     technologies,
-    technicalRange,
   };
 }

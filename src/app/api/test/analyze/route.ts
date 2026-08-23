@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { analyzeRepository } from "@/lib/repository-analysis/orchestration";
+import { analyzeRepository } from "@/lib/analytics/repository-analysis/orchestration";
+import { calculateTechnicalRange } from "@/lib/analytics/scoring/range-scorer";
 
 export async function POST(request: Request) {
   try {
@@ -24,6 +25,8 @@ export async function POST(request: Request) {
       branch,
     });
 
+    const technicalRange = calculateTechnicalRange(analysisResult.technologies);
+
     return NextResponse.json({
       repositoryId: analysisResult.repositoryId,
       owner,
@@ -32,7 +35,7 @@ export async function POST(request: Request) {
       parsedManifests: analysisResult.parsedManifests,
       artifacts: analysisResult.artifacts,
       technologies: analysisResult.technologies,
-      technicalRange: analysisResult.technicalRange,
+      technicalRange,
     });
   } catch (error: any) {
     console.error("Test harness analysis failed:", error);

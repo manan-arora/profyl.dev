@@ -1,4 +1,4 @@
-import { DetectedTechnology } from "../technologies/technology-types";
+import { DetectedTechnology } from "../repository-analysis/technologies/technology-types";
 
 /**
  * Centralized weight mapping for the Technical Range scoring layer.
