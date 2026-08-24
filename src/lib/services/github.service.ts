@@ -173,6 +173,7 @@ async function syncGithub(userId: string): Promise<SyncGithubResult> {
 
                     githubUrl: repo.html_url,
                     homepageUrl: repo.homepage,
+                    defaultBranch: repo.default_branch || "main",
 
                     isFork: repo.fork,
                     isArchived: repo.archived,

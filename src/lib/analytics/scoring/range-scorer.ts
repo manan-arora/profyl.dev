@@ -14,7 +14,7 @@ export const TECHNICAL_RANGE_WEIGHTS: Record<string, number> = {
   "Infrastructure": 10,
   "Caching": 8,
   "Background Jobs": 11,
-  "Real-time": 8,
+  "Real-time": 11,
 };
 
 export interface TechnicalRangeResult {

@@ -6,6 +6,7 @@ import {
   getLeetcodeContest,
   getLeetcodeContestHistory,
 } from "@/lib/leetcode/client";
+import { normalizeSubmissionCalendar } from "@/lib/leetcode/normalizers";
 
 const VERIFICATION_TOKEN_EXPIRY_MINUTES = 30;
 const LEETCODE_USERNAME_REGEX = /^[a-zA-Z0-9_-]+$/;
@@ -224,6 +225,10 @@ async function syncLeetcodeData(userId: string): Promise<void> {
     ? Number((100 - contest.contestTopPercentage).toFixed(2))
     : null;
 
+  const normalizedSubmissionCalendar = normalizeSubmissionCalendar(
+    profile.submissionCalendar
+  );
+
   // 4. Update the existing LeetCodeCache row for the user.
   await prisma.leetCodeCache.update({
     where: {
@@ -236,6 +241,7 @@ async function syncLeetcodeData(userId: string): Promise<void> {
       hardSolved: profile.hardSolved,
       overallRanking: profile.ranking,
       submissionCalendar: profile.submissionCalendar,
+      normalizedSubmissionCalendar: normalizedSubmissionCalendar as any,
       
       contestRating,
       contestGlobalRanking: contest.contestGlobalRanking,

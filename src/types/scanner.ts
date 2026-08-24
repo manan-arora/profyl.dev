@@ -68,9 +68,13 @@ export interface TechnicalRangeResult {
   signals: string[];
 }
 
+export type AnalysisOutcome = "analyzed" | "unsupported" | "failed";
+
 export interface RepositoryAnalysisResult {
   repositoryId: string;
   parsedManifests: ParsedManifest[];
   artifacts: DiscoveredArtifact[];
   technologies: DetectedTechnology[];
+  outcome: AnalysisOutcome;
+  error?: string;
 }

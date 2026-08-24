@@ -63,6 +63,7 @@ model Repository {
   topics               Json?
   githubUrl            String
   homepageUrl          String?
+  defaultBranch        String    @default("main")
   isFork               Boolean
   isArchived           Boolean
   isFeatured           Boolean   @default(false)
@@ -75,7 +76,7 @@ model Repository {
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
   githubUpdatedAt      DateTime  @default(now())
-  detectedCapabilities Json?
+  detectedSignals Json?
   detectedTechnologies Json?
   user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -118,6 +119,7 @@ model LeetCodeCache {
   contestsParticipated       Int?
   ratingHistory              Json?
   submissionCalendar         Json?
+  normalizedSubmissionCalendar Json?
   verificationToken          String?
   verificationTokenExpiresAt DateTime?
   verifiedAt                 DateTime?
@@ -170,8 +172,8 @@ enum ProfileStatus {
 }
 
 enum Tier {
-  S
-  A
-  B
-  C
+  EXCEPTIONAL
+  STRONG
+  SOLID
+  GROWING
 }

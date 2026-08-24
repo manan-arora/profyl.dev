@@ -3,6 +3,8 @@
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { projectService } from "@/lib/services/project.service";
 import { leetcodeService } from "@/lib/services/leetcode.service";
+import { computeAnalytics } from "@/lib/analytics/analytics-engine";
+import { persistAnalytics } from "@/lib/services/analytics.service";
 
 export async function saveFeaturedProjectsAction(
     selectedProjectIds: string[]
@@ -61,6 +63,19 @@ export async function verifyLeetcodeOwnershipAction(username: string) {
 }
 
 /**
+ * Helper function to safely compute and persist user analytics after LeetCode synchronization.
+ * Any errors during this process are logged and do not propagate to the caller.
+ */
+async function computeAndPersistAnalytics(userId: string) {
+  try {
+    const result = await computeAnalytics(userId);
+    await persistAnalytics(result);
+  } catch (error) {
+    console.error("Failed to compute or persist analytics after LeetCode sync:", error);
+  }
+}
+
+/**
  * Server Action to synchronize a verified user's LeetCode data.
  * 
  * @returns Result object with synced status
@@ -73,6 +88,7 @@ export async function syncLeetcodeDataAction() {
   }
 
   await leetcodeService.syncLeetcodeData(user.id);
+  await computeAndPersistAnalytics(user.id);
 
   return { synced: true };
 }
@@ -90,6 +106,7 @@ export async function retryLeetcodeSyncAction() {
   }
 
   await leetcodeService.syncLeetcodeData(user.id);
+  await computeAndPersistAnalytics(user.id);
 
   return { synced: true };
 }

@@ -165,30 +165,42 @@ export async function analyzeRepository({
   branch,
   maxDepth,
 }: AnalyzeRepositoryOptions): Promise<RepositoryAnalysisResult> {
-  const scan: RepositoryScanResult = await scanRepository({
-    repositoryId,
-    owner,
-    repo,
-    accessToken,
-    branch,
-    maxDepth,
-  });
+  try {
+    const scan: RepositoryScanResult = await scanRepository({
+      repositoryId,
+      owner,
+      repo,
+      accessToken,
+      branch,
+      maxDepth,
+    });
 
-  const parsedManifests = await analyzeManifests({
-    manifests: scan.manifests,
-    hasRootGradleVersionCatalog: scan.hasRootGradleVersionCatalog,
-    owner,
-    repo,
-    accessToken,
-    branch,
-  });
+    const parsedManifests = await analyzeManifests({
+      manifests: scan.manifests,
+      hasRootGradleVersionCatalog: scan.hasRootGradleVersionCatalog,
+      owner,
+      repo,
+      accessToken,
+      branch,
+    });
 
-  const technologies = detectTechnologies(parsedManifests, scan.artifacts);
+    const technologies = detectTechnologies(parsedManifests, scan.artifacts);
 
-  return {
-    repositoryId: scan.repositoryId,
-    parsedManifests,
-    artifacts: scan.artifacts,
-    technologies,
-  };
+    return {
+      repositoryId: scan.repositoryId,
+      parsedManifests,
+      artifacts: scan.artifacts,
+      technologies,
+      outcome: scan.manifests.length === 0 ? "unsupported" : "analyzed",
+    };
+  } catch (error: any) {
+    return {
+      repositoryId,
+      parsedManifests: [],
+      artifacts: [],
+      technologies: [],
+      outcome: "failed",
+      error: error?.message || String(error),
+    };
+  }
 }

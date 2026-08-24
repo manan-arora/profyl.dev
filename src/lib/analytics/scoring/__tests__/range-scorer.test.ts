@@ -28,7 +28,7 @@ describe("calculateTechnicalRange", () => {
     expect(calculateTechnicalRange([createTech("docker", "Docker", ["Infrastructure"])]).score).toBe(10);
     expect(calculateTechnicalRange([createTech("redis", "Redis", ["Caching"])]).score).toBe(8);
     expect(calculateTechnicalRange([createTech("bullmq", "BullMQ", ["Background Jobs"])]).score).toBe(11);
-    expect(calculateTechnicalRange([createTech("socketio", "Socket.IO", ["Real-time"])]).score).toBe(8);
+    expect(calculateTechnicalRange([createTech("socketio", "Socket.IO", ["Real-time"])]).score).toBe(11);
   });
 
   it("should sum weights for multiple signals", () => {
@@ -87,8 +87,8 @@ describe("calculateTechnicalRange", () => {
       createTech("t9", "T9", ["Background Jobs"]),
       createTech("t10", "T10", ["Real-time"]),
     ]);
-    // Max score = 5 + 10 + 12 + 8 + 10 + 15 + 10 + 8 + 11 + 8 = 97
-    expect(result.score).toBe(97);
+    // Max score = 5 + 10 + 12 + 8 + 10 + 15 + 10 + 8 + 11 + 11 = 100
+    expect(result.score).toBe(100);
     expect(result.signals).toHaveLength(10);
   });
 

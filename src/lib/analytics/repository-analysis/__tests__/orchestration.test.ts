@@ -346,6 +346,7 @@ plugins {
           ],
         },
       ],
+      outcome: "analyzed",
     });
 
     // Verify it doesn't expose any unwanted/raw scan fields

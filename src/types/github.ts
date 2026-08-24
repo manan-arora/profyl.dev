@@ -34,6 +34,8 @@ export interface GithubRepository {
   stargazers_count: number;
   forks_count: number;
 
+  default_branch: string;
+
   topics: string[];
 
   created_at: string;
@@ -129,4 +131,4 @@ export interface GithubFileContentResponse {
 }
 
 
-
+
