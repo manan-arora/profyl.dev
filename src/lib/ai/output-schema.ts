@@ -7,6 +7,7 @@ import { z } from "zod";
 export const AIOutputSchema = z.object({
   aiSignal: z.string(),
   aiSummary: z.string(),
+  aiEvidence: z.string(),
   strengthChips: z.array(z.string()).min(3).max(5),
   projectSummaries: z.array(
     z.object({

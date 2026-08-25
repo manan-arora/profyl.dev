@@ -157,8 +157,10 @@ model AIInsights {
   userId        String    @unique
   aiSignal      String?
   aiSummary     String?
+  aiEvidence    String?
   strengthChips Json?
   sourceHash    String?
+  promptVersion String?
   modelVersion  String?
   generatedAt   DateTime?
   createdAt     DateTime  @default(now())

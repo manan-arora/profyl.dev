@@ -7,6 +7,7 @@ describe("AIOutputSchema", () => {
       const validData = {
         aiSignal: "Sustained building consistency and strong database concentration.",
         aiSummary: "The developer's profile shows a focus on full-stack application development with strong relational database skills.",
+        aiEvidence: "Top 8% LeetCode percentile. 120 contributions.",
         strengthChips: ["Backend Systems", "Databases", "Authentication"],
         projectSummaries: [
           { repositoryId: "repo_1", summary: "A backend API with database connection." },
@@ -22,6 +23,7 @@ describe("AIOutputSchema", () => {
       const validData = {
         aiSignal: "Broad full-stack project scope complemented by competitive programming participation.",
         aiSummary: "The candidate demonstrates practical engineering skills coupled with sustained problem solving capability.",
+        aiEvidence: "1,850 contest rating. 15 public repositories.",
         strengthChips: ["React", "Next.js", "TypeScript", "Problem Solving", "Caching"],
         projectSummaries: [],
       };
@@ -34,6 +36,7 @@ describe("AIOutputSchema", () => {
       const validData = {
         aiSignal: "Highly focused backend infrastructure implementations.",
         aiSummary: "The projects reveal deep exposure to server-side frameworks and infrastructure automation.",
+        aiEvidence: "23-week contribution streak.",
         strengthChips: ["Backend Systems", "Databases", "Caching"],
         projectSummaries: [
           { repositoryId: "repo_1", summary: null },
@@ -50,6 +53,7 @@ describe("AIOutputSchema", () => {
     it("should fail validation if required fields are missing", () => {
       const missingSignal = {
         aiSummary: "The developer has consistent contributions over the last 12 months.",
+        aiEvidence: "1,200 contributions.",
         strengthChips: ["Databases", "Authentication", "Consistent Building"],
         projectSummaries: [],
       };
@@ -65,6 +69,7 @@ describe("AIOutputSchema", () => {
       const invalidTypes = {
         aiSignal: 12345, // Should be string
         aiSummary: "Strong backend orientation.",
+        aiEvidence: "1,200 contributions.",
         strengthChips: ["Databases", "Authentication", "Consistent Building"],
         projectSummaries: [],
       };
@@ -80,6 +85,7 @@ describe("AIOutputSchema", () => {
       const tooFewChips = {
         aiSignal: "Sustained building consistency.",
         aiSummary: "Strong backend orientation.",
+        aiEvidence: "1,200 contributions.",
         strengthChips: ["Databases", "Authentication"], // 2 chips (min is 3)
         projectSummaries: [],
       };
@@ -96,6 +102,7 @@ describe("AIOutputSchema", () => {
       const tooManyChips = {
         aiSignal: "Sustained building consistency.",
         aiSummary: "Strong backend orientation.",
+        aiEvidence: "1,200 contributions.",
         strengthChips: ["Databases", "Authentication", "Docker", "Next.js", "Redis", "Prisma"], // 6 chips (max is 5)
         projectSummaries: [],
       };
@@ -112,6 +119,7 @@ describe("AIOutputSchema", () => {
       const invalidSummaryValue = {
         aiSignal: "Sustained building consistency.",
         aiSummary: "Strong backend orientation.",
+        aiEvidence: "1,200 contributions.",
         strengthChips: ["Databases", "Authentication", "Docker"],
         projectSummaries: [
           { repositoryId: "repo_1" }, // missing summary field
@@ -129,6 +137,7 @@ describe("AIOutputSchema", () => {
       const invalidRepoId = {
         aiSignal: "Sustained building consistency.",
         aiSummary: "Strong backend orientation.",
+        aiEvidence: "1,200 contributions.",
         strengthChips: ["Databases", "Authentication", "Docker"],
         projectSummaries: [
           { summary: "missing repositoryId field" },
@@ -139,6 +148,37 @@ describe("AIOutputSchema", () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error.issues[0]?.path).toContain("repositoryId");
+      }
+    });
+
+    it("should fail validation if aiEvidence is missing", () => {
+      const missingEvidence = {
+        aiSignal: "A signal.",
+        aiSummary: "A summary.",
+        strengthChips: ["Databases", "Authentication", "Consistent Building"],
+        projectSummaries: [],
+      };
+
+      const result = AIOutputSchema.safeParse(missingEvidence);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0]?.path).toContain("aiEvidence");
+      }
+    });
+
+    it("should fail validation if aiEvidence is not a string", () => {
+      const invalidEvidence = {
+        aiSignal: "A signal.",
+        aiSummary: "A summary.",
+        aiEvidence: 12345, // Should be string
+        strengthChips: ["Databases", "Authentication", "Consistent Building"],
+        projectSummaries: [],
+      };
+
+      const result = AIOutputSchema.safeParse(invalidEvidence);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0]?.path).toContain("aiEvidence");
       }
     });
   });
