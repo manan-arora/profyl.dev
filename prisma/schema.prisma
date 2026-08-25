@@ -171,7 +171,6 @@ model AIInsights {
 enum ProfileStatus {
   INCOMPLETE
   DRAFT
-  READY_TO_PUBLISH
   PUBLISHED
 }
 

@@ -1,19 +1,82 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface LeetcodeResultPanelProps {
-  state: "syncing" | "success" | "sync-failed" | "sync-unavailable";
+  state: "verifying-success-show" | "preparing" | "failed";
   onRetry?: () => void;
-  onContinueToDashboard?: () => void;
+}
+
+const PHRASES = [
+  "SYNCING YOUR CODING ACTIVITY...",
+  "READING BETWEEN THE COMMITS...",
+  "CONNECTING THE DOTS...",
+  "DOING SOME NERD MATH...",
+  "CRUNCHING THE SIGNALS...",
+  "ADDING A LITTLE AI MAGIC...",
+  "BUILDING YOUR PROFYL..."
+];
+
+export function PreparationLoader() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % PHRASES.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="flex flex-col items-center justify-center text-center">
+      {/* Visual Animation - Scaled up proportionally by ~1.5x */}
+      <div className="relative size-36 w-36 h-36 flex items-center justify-center">
+        {/* Outer rotating dashed ring */}
+        <div className="absolute inset-0 rounded-full border border-dashed border-[#c7ff41]/20 animate-spin-slow" />
+        
+        {/* Inner rotating square/diamond */}
+        <div className="absolute size-16 border border-[#c7ff41]/50 rotate-45 animate-spin-reverse-medium" />
+        
+        {/* Pulsing center core */}
+        <div className="absolute size-4 bg-[#c7ff41] rounded-full animate-ping-slow" />
+        <div className="absolute size-2 bg-[#c7ff41] rounded-full" />
+      </div>
+
+      {/* Heading matching "LeetCode verified" typography style */}
+      <h2 className="mt-7 font-display font-semibold tracking-[-0.02em] text-[clamp(1.5rem,4vw,1.875rem)] leading-[1.05] animate-rise-in [animation-delay:0.8s] text-white">
+        Preparing your <span className="text-[#c7ff41] neon-text-glow italic">Profyl</span>
+      </h2>
+
+      {/* Rotating technical phrase in monospace/technical style */}
+      <div className="mt-4 overflow-hidden relative h-6 w-[320px] flex items-center justify-center">
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={index}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="absolute inset-0 font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--neon)] text-center select-none"
+          >
+            {PHRASES[index]}
+          </motion.p>
+        </AnimatePresence>
+      </div>
+    </div>
+  );
 }
 
 export function LeetcodeResultPanel({
   state,
   onRetry,
-  onContinueToDashboard,
 }: LeetcodeResultPanelProps) {
-  const showWarn = state === "sync-failed" || state === "sync-unavailable";
+  if (state === "preparing") {
+    return <PreparationLoader />;
+  }
+
+  const showWarn = state === "failed";
 
   return (
     <div className="text-center font-sans text-white">
@@ -58,35 +121,16 @@ export function LeetcodeResultPanel({
       </h2>
 
       {/* State content */}
-      {state === "syncing" && (
-        <div className="mt-4 flex items-center justify-center gap-2.5 animate-rise-in [animation-delay:0.95s]">
-          <span className="inline-block size-3.5 border border-white/15 border-t-[#c7ff41] rounded-full animate-spin shrink-0" />
-          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/50">
-            Syncing your LeetCode data…
-          </span>
-        </div>
+      {state === "verifying-success-show" && (
+        <p className="mt-3 text-[14px] leading-relaxed text-white/60 animate-rise-in [animation-delay:0.95s]">
+          Your LeetCode profile has been connected and your coding data is ready.
+        </p>
       )}
 
-      {state === "success" && (
+      {state === "failed" && (
         <>
           <p className="mt-3 text-[14px] leading-relaxed text-white/60 animate-rise-in">
-            Your LeetCode profile has been connected and your coding data is ready.
-          </p>
-          <div className="mt-8 animate-rise-in">
-            <div className="h-px w-full bg-white/10 overflow-hidden">
-              <div className="h-px w-full bg-[#c7ff41]/70 animate-bar-fill" />
-            </div>
-            <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.22em] text-white/40">
-              Preparing your Profyl…
-            </p>
-          </div>
-        </>
-      )}
-
-      {state === "sync-failed" && (
-        <>
-          <p className="mt-3 text-[14px] leading-relaxed text-white/60 animate-rise-in">
-            {"Your account was verified, but we couldn't sync your LeetCode data right now."}
+            {"Couldn't finish preparing your Profyl. Please check your connections and try again."}
           </p>
           <div className="mt-8 animate-rise-in">
             <Button
@@ -95,28 +139,7 @@ export function LeetcodeResultPanel({
               variant="primary"
               className="w-full justify-center cursor-pointer"
             >
-              Retry sync <span className="font-mono">→</span>
-            </Button>
-            <p className="mt-4 text-[11px] leading-relaxed text-white/35">
-              {"You won't need to verify your account again."}
-            </p>
-          </div>
-        </>
-      )}
-
-      {state === "sync-unavailable" && (
-        <>
-          <p className="mt-3 text-[14px] leading-relaxed text-white/60 animate-rise-in">
-            {"Your account was verified, but we couldn't reach LeetCode right now. You can try syncing again later."}
-          </p>
-          <div className="mt-8 animate-rise-in">
-            <Button
-              type="button"
-              onClick={onContinueToDashboard}
-              variant="primary"
-              className="w-full justify-center cursor-pointer"
-            >
-              Go to Dashboard <span className="font-mono">→</span>
+              Try again <span className="font-mono">→</span>
             </Button>
           </div>
         </>
@@ -124,4 +147,3 @@ export function LeetcodeResultPanel({
     </div>
   );
 }
-

@@ -11,11 +11,13 @@ import { OnboardingLeetcodeModal } from "@/components/leetcode/OnboardingLeetcod
 interface OnboardingClientProps {
   repositories: Repo[];
   resumeAtLeetcode?: boolean; // Determines if user is continuing onboarding from LeetCode recommendation step
+  isLeetcodeVerified?: boolean;
 }
 
 export default function OnboardingClient({
   repositories,
   resumeAtLeetcode = false,
+  isLeetcodeVerified = false,
 }: OnboardingClientProps) {
   const router = useRouter();
 
@@ -47,14 +49,7 @@ export default function OnboardingClient({
     });
   };
 
-  /**
-   * Secondary Action: Skip LeetCode connection.
-   * Closes the dialog but keeps the user on the current page context without navigating.
-   */
-  const handleSkip = () => {
-    setIsModalOpen(false);
-    // TODO: Implement future draft generation workflow here instead of navigating
-  };
+  // Note: LeetCode verification is now a mandatory step. Skipping is not allowed.
 
   return (
     <>
@@ -73,7 +68,7 @@ export default function OnboardingClient({
       )}
       <OnboardingLeetcodeModal
         open={isModalOpen}
-        onSkip={handleSkip}
+        isLeetcodeVerified={isLeetcodeVerified}
       />
     </>
   );

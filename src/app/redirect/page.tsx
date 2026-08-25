@@ -46,7 +46,6 @@ export default async function RedirectPage() {
       redirect("/onboarding/projects");
 
     case "DRAFT":
-    case "READY_TO_PUBLISH":
     case "PUBLISHED":
       redirect("/dashboard");
 

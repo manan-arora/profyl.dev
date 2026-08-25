@@ -13,7 +13,7 @@ export default async function OnboardingPage() {
 
   /**
    * ROUTE GUARD: Redirect users who have already completed onboarding steps
-   * (e.g. reached DRAFT, READY_TO_PUBLISH, or PUBLISHED status) to their dashboard.
+   * (e.g. reached DRAFT or PUBLISHED status) to their dashboard.
    * Onboarding is a one-way setup process; they should not be allowed to re-run it.
    */
   if (user.profileStatus !== "INCOMPLETE") {
@@ -42,6 +42,7 @@ export default async function OnboardingPage() {
     <OnboardingClient 
       repositories={repositories} 
       resumeAtLeetcode={user.featuredProjectsSelected} 
+      isLeetcodeVerified={user.isLeetcodeVerified}
     />
   );
 }

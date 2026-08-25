@@ -3,8 +3,7 @@
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { projectService } from "@/lib/services/project.service";
 import { leetcodeService } from "@/lib/services/leetcode.service";
-import { computeAnalytics } from "@/lib/analytics/analytics-engine";
-import { persistAnalytics } from "@/lib/services/analytics.service";
+import { completeOnboardingPreparation } from "@/lib/onboarding/preparation";
 
 export async function saveFeaturedProjectsAction(
     selectedProjectIds: string[]
@@ -63,50 +62,18 @@ export async function verifyLeetcodeOwnershipAction(username: string) {
 }
 
 /**
- * Helper function to safely compute and persist user analytics after LeetCode synchronization.
- * Any errors during this process are logged and do not propagate to the caller.
- */
-async function computeAndPersistAnalytics(userId: string) {
-  try {
-    const result = await computeAnalytics(userId);
-    await persistAnalytics(result);
-  } catch (error) {
-    console.error("Failed to compute or persist analytics after LeetCode sync:", error);
-  }
-}
-
-/**
- * Server Action to synchronize a verified user's LeetCode data.
+ * Server Action to complete the onboarding preparation workflow for a verified user.
  * 
- * @returns Result object with synced status
+ * @returns Result object indicating success
  */
-export async function syncLeetcodeDataAction() {
+export async function completeOnboardingPreparationAction() {
   const user = await getCurrentUser();
 
   if (!user) {
     throw new Error("Unauthorized");
   }
 
-  await leetcodeService.syncLeetcodeData(user.id);
-  await computeAndPersistAnalytics(user.id);
+  await completeOnboardingPreparation(user.id);
 
-  return { synced: true };
-}
-
-/**
- * Server Action to retry synchronization for a verified user's LeetCode data.
- * 
- * @returns Result object with synced status
- */
-export async function retryLeetcodeSyncAction() {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    throw new Error("Unauthorized");
-  }
-
-  await leetcodeService.syncLeetcodeData(user.id);
-  await computeAndPersistAnalytics(user.id);
-
-  return { synced: true };
+  return { success: true };
 }

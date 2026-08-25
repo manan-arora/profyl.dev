@@ -4,71 +4,84 @@ import { useState, useCallback, useEffect } from "react";
 import { VerificationPanel } from "./VerificationPanel";
 import { LeetcodeResultPanel } from "./LeetcodeResultPanel";
 import { motion, AnimatePresence } from "framer-motion";
-import { syncLeetcodeDataAction, retryLeetcodeSyncAction } from "@/app/onboarding/actions";
+import { completeOnboardingPreparationAction } from "@/app/onboarding/actions";
 
 interface LeetcodeConnectFlowProps {
+  isVerified?: boolean;
   onComplete: () => void;
-  onUnavailable: () => void;
 }
 
 type FlowPanel = "verification" | "result";
-type ResultState = "syncing" | "success" | "sync-failed" | "sync-unavailable";
+type ResultState = "verifying-success-show" | "preparing" | "failed";
+type BackendState = "idle" | "pending" | "success" | "failed";
 
 export function LeetcodeConnectFlow({
+  isVerified = false,
   onComplete,
-  onUnavailable,
 }: LeetcodeConnectFlowProps) {
-  const [activePanel, setActivePanel] = useState<FlowPanel>("verification");
-  const [resultState, setResultState] = useState<ResultState>("syncing");
-  const [retryCount, setRetryCount] = useState(0);
+  const [activePanel, setActivePanel] = useState<FlowPanel>(
+    isVerified ? "result" : "verification"
+  );
+  const [resultState, setResultState] = useState<ResultState>(
+    isVerified ? "preparing" : "verifying-success-show"
+  );
+  const [backendState, setBackendState] = useState<BackendState>("idle");
 
-  const MAX_RETRIES = 3;
-
-  // Execute sync action and handle state transition
-  const executeSync = useCallback(async (retryCountForThisAttempt = 0) => {
-    setResultState("syncing");
+  // Execute preparation action and handle backend state transition
+  const executePreparation = useCallback(async () => {
+    setBackendState("pending");
     try {
-      if (retryCountForThisAttempt > 0) {
-        await retryLeetcodeSyncAction();
-      } else {
-        await syncLeetcodeDataAction();
-      }
-      setResultState("success");
+      await completeOnboardingPreparationAction();
+      setBackendState("success");
     } catch (error: unknown) {
-      console.error("LeetCode sync failed:", error);
-      if (retryCountForThisAttempt >= MAX_RETRIES) {
-        setResultState("sync-unavailable");
-      } else {
-        setResultState("sync-failed");
-      }
+      console.error("Onboarding preparation failed:", error);
+      setBackendState("failed");
     }
   }, []);
+
+  // Trigger preparation workflow automatically on mount if already verified
+  useEffect(() => {
+    if (isVerified && activePanel === "result" && resultState === "preparing" && backendState === "idle") {
+      executePreparation();
+    }
+  }, [isVerified, activePanel, resultState, backendState, executePreparation]);
+
+  // Handle temporal 1s delay on verification success before entering preparation screen
+  useEffect(() => {
+    if (resultState === "verifying-success-show") {
+      const timer = setTimeout(() => {
+        setResultState("preparing");
+      }, 1000); // Keeps confirmation visible for 1s
+      return () => clearTimeout(timer);
+    }
+  }, [resultState]);
+
+  // Reconcile backend result with preparation screen once loading has started.
+  // If the backend succeeded earlier while verifying-success-show was active,
+  // this immediately redirects the user once resultState transitions to "preparing".
+  useEffect(() => {
+    if (resultState === "preparing") {
+      if (backendState === "success") {
+        onComplete();
+      } else if (backendState === "failed") {
+        setResultState("failed");
+      }
+    }
+  }, [backendState, resultState, onComplete]);
 
   // Called when verification succeeds
   const handleVerified = useCallback(() => {
     setActivePanel("result");
-    setRetryCount(0);
-    executeSync(0);
-  }, [executeSync]);
+    setResultState("verifying-success-show");
+    executePreparation();
+  }, [executePreparation]);
 
-  // Called when user clicks "Retry sync →"
-  const handleRetrySync = useCallback(() => {
-    if (retryCount >= MAX_RETRIES) return;
-
-    const nextRetryCount = retryCount + 1;
-    setRetryCount(nextRetryCount);
-    executeSync(nextRetryCount);
-  }, [retryCount, executeSync]);
-
-  // Handle reporting completion to parent after success screen is shown for 2s
-  useEffect(() => {
-    if (activePanel === "result" && resultState === "success") {
-      const timer = setTimeout(() => {
-        onComplete();
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [activePanel, resultState, onComplete]);
+  // Called when user clicks "Try again"
+  const handleRetry = useCallback(() => {
+    setResultState("preparing");
+    setBackendState("pending");
+    executePreparation();
+  }, [executePreparation]);
 
   return (
     <AnimatePresence mode="wait" initial={false}>
@@ -94,8 +107,7 @@ export function LeetcodeConnectFlow({
         >
           <LeetcodeResultPanel
             state={resultState}
-            onRetry={handleRetrySync}
-            onContinueToDashboard={onUnavailable}
+            onRetry={handleRetry}
           />
         </motion.div>
       )}
