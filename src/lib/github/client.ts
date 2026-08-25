@@ -199,3 +199,37 @@ export async function getGithubFileContent(
 
   return response.content;
 }
+
+export async function getGithubReadme(
+  accessToken: string,
+  owner: string,
+  repo: string
+): Promise<string> {
+  const endpoint = `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(
+    repo
+  )}/readme`;
+
+  const response = await request<GithubFileContentResponse>(
+    endpoint,
+    accessToken
+  );
+
+  if (Array.isArray(response) || !response || typeof response !== "object") {
+    throw new Error(
+      `GitHub readme API returned non-file response for repo: ${owner}/${repo}`
+    );
+  }
+
+  if (typeof response.content !== "string") {
+    throw new Error(
+      `GitHub readme API response missing content for repo: ${owner}/${repo}`
+    );
+  }
+
+  if (response.encoding === "base64") {
+    return Buffer.from(response.content, "base64").toString("utf-8");
+  }
+
+  return response.content;
+}
+

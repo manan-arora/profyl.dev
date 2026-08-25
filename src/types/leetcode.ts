@@ -19,7 +19,21 @@ export interface LeetcodeContestResponse {
   contestTopPercentage: number;
 }
 
+export interface LeetcodeContestHistoryItem {
+  attended: boolean;
+  trendDirection?: string;
+  problemsSolved?: number;
+  totalProblems?: number;
+  finishTimeInSeconds?: number;
+  rating: number;
+  ranking: number;
+  contest: {
+    title: string;
+    startTime: number;
+  };
+}
+
 export interface LeetcodeContestHistoryResponse {
   count: number;
-  contestHistory: any[];
+  contestHistory: LeetcodeContestHistoryItem[];
 }

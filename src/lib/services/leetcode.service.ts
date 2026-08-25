@@ -248,7 +248,7 @@ async function syncLeetcodeData(userId: string): Promise<void> {
       contestsParticipated: contest.contestAttend,
       percentile,
 
-      ratingHistory: contestHistory.contestHistory,
+      ratingHistory: contestHistory.contestHistory as any,
 
       lastSyncedAt: syncedAt,
       cacheExpiresAt,

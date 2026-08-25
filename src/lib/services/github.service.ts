@@ -5,6 +5,7 @@ import {
     getGithubProfile,
     getGithubRepositories,
     getGithubRepositoryLanguages,
+    getGithubReadme,
 } from "@/lib/github/client";
 import {
     aggregateLanguageBytes,
@@ -68,6 +69,8 @@ async function syncGithub(userId: string): Promise<SyncGithubResult> {
     const forksEarned = calculateForksEarned(eligibleRepositories);
 
     let languageDistribution: Record<string, number> = {};
+    const readmes = new Map<string, string | null>();
+
     try {
         if (eligibleRepositories.length > 0) {
             const languageResponses: Record<string, number>[] = [];
@@ -75,11 +78,24 @@ async function syncGithub(userId: string): Promise<SyncGithubResult> {
             for (let i = 0; i < eligibleRepositories.length; i += LANGUAGE_FETCH_CONCURRENCY) {
                 const batch = eligibleRepositories.slice(i, i + LANGUAGE_FETCH_CONCURRENCY);
                 const batchResults = await Promise.all(
-                    batch.map((repo) => {
+                    batch.map(async (repo) => {
                         const parts = repo.full_name.split("/");
                         const owner = parts[0] || profile.login;
                         const repoName = parts[1] || repo.name;
-                        return getGithubRepositoryLanguages(accessToken, owner, repoName);
+
+                        const [languages, readme] = await Promise.all([
+                            getGithubRepositoryLanguages(accessToken, owner, repoName).catch((err) => {
+                                console.warn(`Language fetch failed for ${repo.full_name}:`, err);
+                                return {};
+                            }),
+                            getGithubReadme(accessToken, owner, repoName).catch((err) => {
+                                console.warn(`README fetch failed for ${repo.full_name}:`, err);
+                                return null;
+                            })
+                        ]);
+
+                        readmes.set(String(repo.id), readme);
+                        return languages;
                     })
                 );
                 languageResponses.push(...batchResults);
@@ -145,6 +161,27 @@ async function syncGithub(userId: string): Promise<SyncGithubResult> {
             },
         });
 
+        // Sync user profile name (not overwriting if already populated)
+        const existingProfile = await tx.profile.findUnique({
+            where: { userId },
+        });
+
+        if (existingProfile) {
+            if (!existingProfile.name && profile.name) {
+                await tx.profile.update({
+                    where: { userId },
+                    data: { name: profile.name },
+                });
+            }
+        } else {
+            await tx.profile.create({
+                data: {
+                    userId,
+                    name: profile.name ?? null,
+                },
+            });
+        }
+
         // Persist GitHub cache
         await tx.gitHubCache.upsert({
             where: {
@@ -180,6 +217,7 @@ async function syncGithub(userId: string): Promise<SyncGithubResult> {
 
                     lastSyncedAt: syncedAt,
                     githubUpdatedAt: new Date(repo.updated_at),
+                    readme: readmes.get(String(repo.id)) ?? null,
                 };
 
                 return tx.repository.upsert({
