@@ -209,6 +209,18 @@ Avoid repetitive constructions such as:
 
 The Summary should complement the Signal rather than repeat it.
 
+HIGHLIGHTING:
+- Identify 2–4 of the most meaningful phrases in the summary.
+- Wrap those exact phrases in **double asterisks**.
+- Highlights should represent meaningful technical capabilities, engineering patterns, or specialization.
+- Prefer multi-word phrases over isolated words.
+- Do not highlight generic words, metrics, names of platforms, or entire sentences unless genuinely important.
+- Do not use any other Markdown formatting.
+- The summary must remain natural and readable without the highlighting.
+
+Example output:
+Backend-focused engineer with strong **distributed systems** experience and a public track record across GitHub, LeetCode, and shipped projects. Consistent contributor with strengths in **APIs, platform engineering**, and **scalable backend architecture**.
+
 ==================================================
 AI EVIDENCE
 ==================================================

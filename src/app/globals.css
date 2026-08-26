@@ -65,3 +65,16 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
+
+/* Profyl Public View Anchor Scrolling Offset */
+.profyl-public-view section[id] {
+  scroll-margin-top: 4rem;
+}
+
+.recharts-wrapper:focus,
+.recharts-surface:focus,
+.recharts-surface *:focus,
+.recharts-wrapper *:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}

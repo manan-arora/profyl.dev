@@ -1,6 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { SignUp } from "@clerk/nextjs";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Sign Up",
+};
 
 export default function SignUpPage() {
   return (

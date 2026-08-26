@@ -3,6 +3,11 @@ import { getCurrentUser } from "@/lib/auth/current-user";
 import { projectService } from "@/lib/services/project.service";
 import OnboardingClient from "./OnboardingClient";
 import { githubService } from "@/lib/services/github.service";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Onboarding",
+};
 
 export default async function OnboardingPage() {
   const user = await getCurrentUser();

@@ -34,6 +34,10 @@ export async function handleUserCreated(data: UserJSON) {
   // Generate unique slug from githubUsername
   const slug = githubUsername.toLowerCase();
 
+  // Extract name and avatar URL
+  const name = `${data.first_name || ""} ${data.last_name || ""}`.trim() || null;
+  const avatarUrl = data.image_url || null;
+
   console.log(`[Clerk Webhook] Upserting user: ${clerkId} (GitHub: ${githubUsername}, Slug: ${slug})`);
 
   // Perform Prisma upsert to guarantee idempotency
@@ -42,6 +46,8 @@ export async function handleUserCreated(data: UserJSON) {
     create: {
       clerkId,
       email,
+      name,
+      avatarUrl,
       githubId,
       githubUsername,
       slug,
@@ -49,6 +55,8 @@ export async function handleUserCreated(data: UserJSON) {
     },
     update: {
       email,
+      name,
+      avatarUrl,
       githubId,
       githubUsername,
       slug,

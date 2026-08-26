@@ -13,9 +13,13 @@ export async function handleUserUpdated(data: UserJSON) {
     throw new Error(`[Clerk Webhook] Missing email address for update of user: ${clerkId}`);
   }
 
+  // Extract name and avatar URL
+  const name = `${data.first_name || ""} ${data.last_name || ""}`.trim() || null;
+  const avatarUrl = data.image_url || null;
+
   console.log(`[Clerk Webhook] Updating user: ${clerkId} (New Email: ${email})`);
 
-   // Extract GitHub OAuth identity details from external_accounts
+  // Extract GitHub OAuth identity details from external_accounts
   const githubAccount = data.external_accounts.find(
     (acc) => acc.provider === "oauth_github"
   );
@@ -36,8 +40,10 @@ export async function handleUserUpdated(data: UserJSON) {
   await prisma.user.updateMany({
     where: { clerkId },
     data: {
-  email,
-  githubUsername,
-}
+      email,
+      name,
+      avatarUrl,
+      githubUsername,
+    }
   });
 }
