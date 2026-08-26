@@ -42,7 +42,7 @@ export async function completeOnboardingPreparation(userId: string): Promise<voi
   // 3. Generate and persist AI insights
   await generateAndPersistAIInsights(userId, analyticsResult);
 
-  // 4. Atomically transition profileStatus to DRAFT
+  // 4. Transition profileStatus to DRAFT
   await prisma.user.update({
     where: { id: userId },
     data: { profileStatus: "DRAFT" },
