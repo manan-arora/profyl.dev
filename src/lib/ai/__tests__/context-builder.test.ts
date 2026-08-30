@@ -88,21 +88,23 @@ function createMockSources(overrides: Partial<AIContextSources> = {}): AIContext
 }
 
 describe("buildAIContext", () => {
-  describe("Developer Context", () => {
-    it("should map Developer Profile fields when Profile is present", () => {
-      const sources = createMockSources({
+  describe("Developer Profile Fields Exclusion", () => {
+    it("should produce identical context when profile fields change", () => {
+      const baseSources = createMockSources({
         profile: {
           id: "profile_123",
           userId: "user_123",
           name: "Test User",
           headline: "Software Engineer",
-          bio: "Doing things.",
+          bio: "Original bio.",
           currentRole: "Engineer",
           currentCompany: "Acme Corp",
           yearsExperience: 5,
           location: "San Francisco, CA",
           college: "Stanford University",
+          degree: "B.S.",
           graduationYear: 2020,
+          branch: "Computer Science",
           techStack: ["TypeScript", "Next.js"],
           linkedinUrl: "https://linkedin.com/in/testuser",
           portfolioUrl: "https://testuser.dev",
@@ -112,76 +114,34 @@ describe("buildAIContext", () => {
         },
       });
 
-      const context = buildAIContext(sources);
-
-      expect(context.developer).toEqual({
-        name: "Test User",
-        headline: "Software Engineer",
-        bio: "Doing things.",
-        currentRole: "Engineer",
-        currentCompany: "Acme Corp",
-        yearsExperience: 5,
-        college: "Stanford University",
-        graduationYear: 2020,
-        declaredTechStack: ["TypeScript", "Next.js"],
-      });
-    });
-
-    it("should omit missing Profile fields and avoid placeholders", () => {
-      const sources = createMockSources({
+      const updatedSources = createMockSources({
         profile: {
           id: "profile_123",
           userId: "user_123",
-          name: null,
-          headline: null,
-          bio: null,
-          currentRole: null,
-          currentCompany: null,
-          yearsExperience: null,
-          location: null,
-          college: null,
-          graduationYear: null,
-          techStack: null,
-          linkedinUrl: null,
-          portfolioUrl: null,
-          resumeUrl: null,
+          name: "Different User Name",
+          headline: "Lead Architect",
+          bio: "Brand new bio content.",
+          currentRole: "Lead",
+          currentCompany: "Different Corp",
+          yearsExperience: 10,
+          location: "New York, NY",
+          college: "MIT",
+          degree: "M.S.",
+          graduationYear: 2015,
+          branch: "Electrical Engineering",
+          techStack: ["React", "Rust"],
+          linkedinUrl: "https://linkedin.com/in/differentuser",
+          portfolioUrl: "https://differentuser.dev",
+          resumeUrl: "https://cloudinary.com/differentuser/resume.pdf",
           createdAt: new Date(),
           updatedAt: new Date(),
         },
       });
 
-      const context = buildAIContext(sources);
+      const context1 = buildAIContext(baseSources);
+      const context2 = buildAIContext(updatedSources);
 
-      expect(context.developer).toEqual({});
-      expect(context.developer.name).toBeUndefined();
-      expect(context.developer.headline).toBeUndefined();
-    });
-
-    it("should handle empty Profile name string as undefined", () => {
-      const sources = createMockSources({
-        profile: {
-          id: "profile_123",
-          userId: "user_123",
-          name: "  ",
-          headline: null,
-          bio: null,
-          currentRole: null,
-          currentCompany: null,
-          yearsExperience: null,
-          location: null,
-          college: null,
-          graduationYear: null,
-          techStack: null,
-          linkedinUrl: null,
-          portfolioUrl: null,
-          resumeUrl: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      });
-
-      const context = buildAIContext(sources);
-      expect(context.developer.name).toBeUndefined();
+      expect(context1).toEqual(context2);
     });
   });
 
@@ -725,6 +685,185 @@ describe("buildAIContext", () => {
       
       expect(p1?.readme).toHaveLength(6000);
       expect(p1?.readme?.endsWith("A")).toBe(true);
+    });
+  });
+
+  describe("AIContext Invalidation Rules", () => {
+    it("should change context when a featured project's custom title or custom description changes", () => {
+      const baseSources = createMockSources({
+        featuredRepositories: [
+          {
+            id: "repo_1",
+            githubRepoId: "123",
+            userId: "user_123",
+            name: "repo-name",
+            stars: 10,
+            forks: 5,
+            primaryLanguage: "TypeScript",
+            githubUrl: "https://github.com/user/repo",
+            homepageUrl: null,
+            isFork: false,
+            isArchived: false,
+            isFeatured: true,
+            displayOrder: 1,
+            customTitle: "Original Title",
+            customDescription: "Original Description",
+            lastSyncedAt: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            githubUpdatedAt: new Date(),
+            defaultBranch: "main",
+            detectedSignals: null,
+            detectedTechnologies: null,
+            readme: null,
+            projectSummary: null,
+          },
+        ],
+      });
+
+      const updatedSources = createMockSources({
+        featuredRepositories: [
+          {
+            ...baseSources.featuredRepositories[0],
+            customTitle: "Updated Title",
+          },
+        ],
+      });
+
+      const context1 = buildAIContext(baseSources);
+      const context2 = buildAIContext(updatedSources);
+
+      expect(context1).not.toEqual(context2);
+      expect(context2.projects[0].title).toBe("Updated Title");
+    });
+
+    it("should change context when featured project selection or order changes", () => {
+      const r1 = {
+        id: "repo_1",
+        githubRepoId: "123",
+        userId: "user_123",
+        name: "repo-1",
+        stars: 10,
+        forks: 5,
+        primaryLanguage: "TypeScript",
+        githubUrl: "https://github.com/user/repo-1",
+        homepageUrl: null,
+        isFork: false,
+        isArchived: false,
+        isFeatured: true,
+        displayOrder: 1,
+        customTitle: null,
+        customDescription: null,
+        lastSyncedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        githubUpdatedAt: new Date(),
+        defaultBranch: "main",
+        detectedSignals: null,
+        detectedTechnologies: null,
+        readme: null,
+        projectSummary: null,
+      };
+
+      const r2 = {
+        ...r1,
+        id: "repo_2",
+        githubRepoId: "456",
+        name: "repo-2",
+        displayOrder: 2,
+      };
+
+      const baseSources = createMockSources({
+        featuredRepositories: [r1, r2],
+      });
+
+      const updatedSources = createMockSources({
+        featuredRepositories: [
+          { ...r2, displayOrder: 1 },
+          { ...r1, displayOrder: 2 },
+        ],
+      });
+
+      const context1 = buildAIContext(baseSources);
+      const context2 = buildAIContext(updatedSources);
+
+      expect(context1).not.toEqual(context2);
+    });
+
+    it("should change context when GitHub or LeetCode cached metrics change", () => {
+      const baseSources = createMockSources({
+        githubCache: {
+          id: "gh_123",
+          userId: "user_123",
+          followers: 10,
+          following: 10,
+          publicRepoCount: 5,
+          totalContributionsLastYear: 100,
+          contributionCalendar: { weeks: [] },
+          activeWeeks: 10,
+          longestStreak: 5,
+          ossPrsMerged: 2,
+          starsEarned: 20,
+          forksEarned: 5,
+          languageDistribution: { TypeScript: 80 },
+          lastSyncedAt: new Date(),
+          cacheExpiresAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+
+      const updatedSources = createMockSources({
+        ...baseSources,
+        githubCache: {
+          ...baseSources.githubCache!,
+          totalContributionsLastYear: 120,
+        },
+      });
+
+      const context1 = buildAIContext(baseSources);
+      const context2 = buildAIContext(updatedSources);
+
+      expect(context1).not.toEqual(context2);
+      expect(context2.github.contributionsLastYear).toBe(120);
+    });
+
+    it("should change context when analytics metrics change", () => {
+      const baseSources = createMockSources({
+        analyticsResult: {
+          userId: "user_123",
+          profylScore: 750,
+          tier: Tier.STRONG,
+          githubScore: 80,
+          projectsScore: 70,
+          leetcodeScore: 60,
+          consistencyScore: 90,
+          radar: { buildActivity: 80, technicalRange: 75, problemSolving: 85, consistency: 90, openSource: 50 },
+          signalBreakdown: { github: 80, projects: 75, leetcode: 85, consistency: 90 },
+          components: {
+            buildActivity: { score: 80, contributionScore: 85, activeProjectScore: 75 },
+            technicalRange: { score: 75, signals: ["Frontend"] },
+            problemSolving: { score: 85, volumeScore: 90, difficultyScore: 80, contestScore: 85 },
+            consistency: { score: 90, githubConsistency: 92, leetcodeConsistency: 88, githubActiveWeekScore: 95, githubGapScore: 90, leetcodeActiveDayScore: 85, leetcodeGapScore: 92 },
+            openSource: { score: 50, contributionScore: 55, starsScore: 45, forksScore: 40, impactScore: 50 },
+          },
+          featuredAnalysis: { repositories: [], totalRepositories: 0, analyzedRepositories: 0 },
+        },
+      });
+
+      const updatedSources = createMockSources({
+        ...baseSources,
+        analyticsResult: {
+          ...baseSources.analyticsResult,
+          profylScore: 780,
+        },
+      });
+
+      const context1 = buildAIContext(baseSources);
+      const context2 = buildAIContext(updatedSources);
+
+      expect(context1).not.toEqual(context2);
+      expect(context2.evaluation.profylScore).toBe(780);
     });
   });
 });

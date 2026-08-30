@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getProfylPageData } from "@/lib/services/profyl-page.service";
-import { ProfylPage } from "@/components/profyl/ProfylPage";
+import { PublicProfileClient } from "@/components/profyl/PublicProfileClient";
 import Link from "next/link";
 import Image from "next/image";
 import { Metadata } from "next";
@@ -12,7 +12,9 @@ interface PublicProfilePageProps {
   }>;
 }
 
-export async function generateMetadata({ params }: PublicProfilePageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PublicProfilePageProps): Promise<Metadata> {
   const { slug } = await params;
   const user = await prisma.user.findUnique({
     where: { slug },
@@ -33,7 +35,9 @@ export async function generateMetadata({ params }: PublicProfilePageProps): Prom
   };
 }
 
-export default async function PublicProfilePage({ params }: PublicProfilePageProps) {
+export default async function PublicProfilePage({
+  params,
+}: PublicProfilePageProps) {
   const { slug } = await params;
 
   // 1. Resolve user by slug
@@ -46,7 +50,7 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
   }
 
   // 2. Check if published visibility rule is met
-  if (false && !user?.isPublished) {
+  if (!user?.isPublished) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] text-white flex flex-col justify-between relative overflow-hidden font-sans">
         {/* Simple top navbar branding */}
@@ -60,7 +64,9 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
                 height={28}
                 className="size-7 object-contain"
               />
-              <span className="font-display font-semibold tracking-tight text-lg">profyl</span>
+              <span className="font-display font-semibold tracking-tight text-lg">
+                profyl
+              </span>
             </Link>
           </div>
         </header>
@@ -81,7 +87,8 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
               Profile Not Published
             </h1>
             <p className="text-white/60 text-sm leading-relaxed mb-6">
-              This Profyl is not published yet. This developer has not made their profile public.
+              This Profyl is not published yet. This developer has not made
+              their profile public.
             </p>
             <Link
               href="/"
@@ -97,8 +104,17 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
           <div className="mx-auto max-w-[1400px] w-full px-6 lg:px-10 flex justify-between items-center text-xs text-white/40">
             <span>© 2026 profyl.dev</span>
             <div className="flex gap-4">
-              <Link href="/" className="hover:text-white transition-colors">Home</Link>
-              <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Twitter</a>
+              <Link href="/" className="hover:text-white transition-colors">
+                Home
+              </Link>
+              <a
+                href="https://x.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors"
+              >
+                Twitter
+              </a>
             </div>
           </div>
         </footer>
@@ -113,5 +129,5 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
     notFound();
   }
 
-  return <ProfylPage data={data} mode="public" />;
+  return <PublicProfileClient initialData={data} slug={slug} />;
 }

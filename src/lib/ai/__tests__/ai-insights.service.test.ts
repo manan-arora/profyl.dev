@@ -65,7 +65,6 @@ describe("generateAndPersistAIInsights service", () => {
   };
 
   const mockContext = {
-    developer: { name: "Test User" },
     evaluation: { profylScore: 780 },
     github: {},
     leetcode: {},

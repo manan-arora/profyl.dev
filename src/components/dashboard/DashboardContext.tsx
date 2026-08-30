@@ -8,10 +8,17 @@ import {
   useRef,
   useEffect,
   ReactNode,
+  useCallback,
 } from "react";
 import { usePathname } from "next/navigation";
-import { ProfylPageData, ProfylProject } from "@/types/profyl-page";
-import { DetectedTechnology } from "@/lib/analytics/repository-analysis/technologies/technology-types";
+import { ProfylPageData } from "@/types/profyl-page";
+import {
+  saveChangesAction,
+  retryDerivedDataPipelineAction,
+  checkDashboardFreshnessAction,
+} from "@/app/dashboard/actions";
+import { toast } from "sonner";
+import { SaveProcessingModal } from "./SaveProcessingModal";
 
 export interface DashboardUser {
   id: string;
@@ -33,6 +40,8 @@ export interface DashboardProfile {
   location: string | null;
   college: string | null;
   graduationYear: number | null;
+  branch: string | null;
+  degree: string | null;
   techStack: unknown;
   linkedinUrl: string | null;
   portfolioUrl: string | null;
@@ -67,6 +76,7 @@ export interface LocalProfile {
   yearsExperience: number;
   location: string;
   college: string;
+  degree: string;
   graduationYear: number;
   branch: string; // local phase 1 state
   techStack: string[];
@@ -95,6 +105,7 @@ export interface LocalRepository {
 }
 
 export type SaveState = "idle" | "unsaved" | "saving" | "saved";
+export type RefreshState = "idle" | "refreshing" | "failed";
 
 interface DashboardCtx {
   user: DashboardUser;
@@ -112,13 +123,16 @@ interface DashboardCtx {
   saveChanges: () => Promise<void>;
   discardEdits: () => void;
   getLastActiveTab: () => string;
+  refreshState: RefreshState;
+  retryRefresh: () => Promise<void>;
 }
 
 const DashboardContext = createContext<DashboardCtx | null>(null);
 
 export function useDashboard() {
   const ctx = useContext(DashboardContext);
-  if (!ctx) throw new Error("useDashboard must be used within DashboardProvider");
+  if (!ctx)
+    throw new Error("useDashboard must be used within DashboardProvider");
   return ctx;
 }
 
@@ -158,28 +172,43 @@ export function DashboardProvider({
 
   // 1. Saved Data & Profile Status States
   const [savedData, setSavedData] = useState<ProfylPageData>(initialData);
-  const [profileStatus, setProfileStatus] = useState<"INCOMPLETE" | "DRAFT" | "PUBLISHED">(
-    user.profileStatus
+  const [profileStatus, setProfileStatus] = useState<
+    "INCOMPLETE" | "DRAFT" | "PUBLISHED"
+  >(user.profileStatus);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">(
+    "idle",
   );
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const [isProcessingOpen, setIsProcessingOpen] = useState(false);
+  const [processingState, setProcessingState] = useState<
+    "preparing" | "failed"
+  >("preparing");
+  const [refreshState, setRefreshState] = useState<RefreshState>("idle");
+  const isRefreshingRef = useRef(false);
 
   // 2. Unsaved Edits State
   const [localProfile, setLocalProfile] = useState<LocalProfile>(() => ({
     name: rawProfile?.name ?? initialData.identity.name ?? "",
     headline: rawProfile?.headline ?? "",
     bio: rawProfile?.bio ?? initialData.identity.bio ?? "",
-    currentRole: rawProfile?.currentRole ?? initialData.identity.currentRole ?? "",
-    currentCompany: rawProfile?.currentCompany ?? "",
-    yearsExperience: rawProfile?.yearsExperience ?? initialData.identity.yearsExperience ?? 0,
+    currentRole:
+      rawProfile?.currentRole ?? initialData.identity.currentRole ?? "",
+    currentCompany:
+      rawProfile?.currentCompany ?? initialData.identity.currentCompany ?? "",
+    yearsExperience:
+      rawProfile?.yearsExperience ?? initialData.identity.yearsExperience ?? 0,
     location: rawProfile?.location ?? initialData.identity.location ?? "",
-    college: rawProfile?.college ?? "",
-    graduationYear: rawProfile?.graduationYear ?? 0,
-    branch: "", // local phase 1 state
+    college: rawProfile?.college ?? initialData.identity.college ?? "",
+    degree: rawProfile?.degree ?? initialData.identity.degree ?? "",
+    graduationYear:
+      rawProfile?.graduationYear ?? initialData.identity.graduationYear ?? 0,
+    branch: rawProfile?.branch ?? initialData.identity.branch ?? "",
     techStack: Array.isArray(rawProfile?.techStack)
       ? (rawProfile.techStack as string[])
       : initialData.identity.techStack || [],
-    linkedinUrl: rawProfile?.linkedinUrl ?? initialData.identity.linkedinUrl ?? "",
-    portfolioUrl: rawProfile?.portfolioUrl ?? initialData.identity.portfolioUrl ?? "",
+    linkedinUrl:
+      rawProfile?.linkedinUrl ?? initialData.identity.linkedinUrl ?? "",
+    portfolioUrl:
+      rawProfile?.portfolioUrl ?? initialData.identity.portfolioUrl ?? "",
     resumeUrl: rawProfile?.resumeUrl ?? initialData.identity.resumeUrl ?? "",
   }));
 
@@ -203,21 +232,23 @@ export function DashboardProvider({
       projectSummary: repo.projectSummary,
       githubUrl: repo.githubUrl,
       forks: repo.forks ?? 0,
-    }))
+    })),
   );
 
   // State values representing database baseline
   const [initialProfile, setInitialProfile] = useState<LocalProfile>(() =>
-    JSON.parse(JSON.stringify(localProfile))
+    JSON.parse(JSON.stringify(localProfile)),
   );
-  const [initialProjects, setInitialProjects] = useState<LocalRepository[]>(() =>
-    JSON.parse(JSON.stringify(localProjects))
+  const [initialProjects, setInitialProjects] = useState<LocalRepository[]>(
+    () => JSON.parse(JSON.stringify(localProjects)),
   );
 
   // Calculate isDirty directly against the baseline state values
   const isDirty = useMemo(() => {
-    const profileChanged = JSON.stringify(localProfile) !== JSON.stringify(initialProfile);
-    const projectsChanged = JSON.stringify(localProjects) !== JSON.stringify(initialProjects);
+    const profileChanged =
+      JSON.stringify(localProfile) !== JSON.stringify(initialProfile);
+    const projectsChanged =
+      JSON.stringify(localProjects) !== JSON.stringify(initialProjects);
     return profileChanged || projectsChanged;
   }, [localProfile, localProjects, initialProfile, initialProjects]);
 
@@ -235,7 +266,7 @@ export function DashboardProvider({
 
   const updateProject = (id: string, updates: Partial<LocalRepository>) => {
     setLocalProjects((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
+      prev.map((p) => (p.id === id ? { ...p, ...updates } : p)),
     );
   };
 
@@ -293,52 +324,240 @@ export function DashboardProvider({
     setLocalProjects(JSON.parse(JSON.stringify(initialProjects)));
   };
 
-  // Mock saveChanges - Phase 1 only (mutates savedData state locally)
+  const checkFreshness = useCallback(async () => {
+    if (isRefreshingRef.current) return;
+    isRefreshingRef.current = true;
+    setRefreshState("refreshing");
+
+    try {
+      const response = await checkDashboardFreshnessAction();
+
+      if (!response.success) {
+        throw new Error(
+          response.error || "Failed to check dashboard freshness",
+        );
+      }
+
+      if (response.refreshed && response.canonicalData) {
+        setSavedData(response.canonicalData);
+
+        const freshProfile = mapRawProfileToLocal(response.rawProfile);
+        const freshProjects = mapRawRepositoriesToLocal(
+          response.rawRepositories || [],
+        );
+
+        // Minimal state merge logic:
+        // Update localProfile only on fields that are NOT dirty (equal to initialProfile)
+        setLocalProfile((currentLocal) => {
+          const merged = { ...currentLocal };
+          (Object.keys(currentLocal) as Array<keyof LocalProfile>).forEach(
+            (key) => {
+              const isDirtyField =
+                JSON.stringify(currentLocal[key]) !==
+                JSON.stringify(initialProfile[key]);
+              if (!isDirtyField) {
+                (merged as any)[key] = freshProfile[key];
+              }
+            },
+          );
+          return merged;
+        });
+
+        // Update localProjects: merge each repository based on ID
+        setLocalProjects((currentLocalList) => {
+          return freshProjects.map((freshRepo) => {
+            const localRepo = currentLocalList.find(
+              (r) => r.id === freshRepo.id,
+            );
+            const initialRepo = initialProjects.find(
+              (r) => r.id === freshRepo.id,
+            );
+            if (!localRepo || !initialRepo) return freshRepo;
+
+            const mergedRepo = { ...freshRepo };
+            const editableKeys: Array<keyof LocalRepository> = [
+              "isFeatured",
+              "displayOrder",
+              "customTitle",
+              "customDescription",
+              "liveDemoUrl",
+              "topics",
+            ];
+            editableKeys.forEach((key) => {
+              const isDirtyField =
+                JSON.stringify(localRepo[key]) !==
+                JSON.stringify(initialRepo[key]);
+              if (isDirtyField) {
+                (mergedRepo as any)[key] = localRepo[key];
+              }
+            });
+            return mergedRepo;
+          });
+        });
+
+        // Always update baseline states with refreshed database values
+        setInitialProfile(JSON.parse(JSON.stringify(freshProfile)));
+        setInitialProjects(JSON.parse(JSON.stringify(freshProjects)));
+      }
+
+      setRefreshState("idle");
+    } catch (error: any) {
+      console.error("Dashboard freshness check failed:", error);
+      setRefreshState("failed");
+    } finally {
+      isRefreshingRef.current = false;
+    }
+  }, [initialProfile, initialProjects]);
+
+  useEffect(() => {
+    checkFreshness();
+  }, []);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mapRawProfileToLocal = (raw: any): LocalProfile => ({
+    name: raw?.name ?? "",
+    headline: raw?.headline ?? "",
+    bio: raw?.bio ?? "",
+    currentRole: raw?.currentRole ?? "",
+    currentCompany: raw?.currentCompany ?? "",
+    yearsExperience: raw?.yearsExperience ?? 0,
+    location: raw?.location ?? "",
+    college: raw?.college ?? "",
+    degree: raw?.degree ?? "",
+    graduationYear: raw?.graduationYear ?? 0,
+    branch: raw?.branch ?? "",
+    techStack: Array.isArray(raw?.techStack) ? (raw.techStack as string[]) : [],
+    linkedinUrl: raw?.linkedinUrl ?? "",
+    portfolioUrl: raw?.portfolioUrl ?? "",
+    resumeUrl: raw?.resumeUrl ?? "",
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mapRawRepositoriesToLocal = (repos: any[]): LocalRepository[] =>
+    repos.map((repo) => ({
+      id: repo.id,
+      name: repo.name,
+      description: repo.description,
+      stars: repo.stars,
+      primaryLanguage: repo.primaryLanguage,
+      githubUpdatedAt: repo.githubUpdatedAt,
+      isFeatured: repo.isFeatured,
+      displayOrder: repo.displayOrder,
+      customTitle: repo.customTitle,
+      customDescription: repo.customDescription,
+      liveDemoUrl: repo.liveDemoUrl,
+      topics: Array.isArray(repo.topics) ? (repo.topics as string[]) : [],
+      detectedTechnologies: Array.isArray(repo.detectedTechnologies)
+        ? (repo.detectedTechnologies as unknown[])
+        : [],
+      projectSummary: repo.projectSummary,
+      githubUrl: repo.githubUrl,
+      forks: repo.forks ?? 0,
+    }));
+
+  // Real saveChanges - calls Server Action and synchronizes client state
   const saveChanges = async () => {
     setSaveStatus("saving");
-    await new Promise((resolve) => setTimeout(resolve, 800)); // Simulate fake network delay
 
-    // Map local state to canonical ProfylPageData
-    const updatedFeaturedProjects: ProfylProject[] = localProjects
-      .filter((p) => p.isFeatured)
-      .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
-      .map((p) => ({
-        id: p.id,
-        name: p.customTitle || p.name,
-        description: p.customDescription || p.description,
-        stars: p.stars,
-        primaryLanguage: p.primaryLanguage,
-        detectedTechnologies: Array.isArray(p.detectedTechnologies)
-          ? (p.detectedTechnologies as DetectedTechnology[])
-          : [],
-        topics: p.topics,
-        githubUrl: p.githubUrl,
-        liveDemoUrl: p.liveDemoUrl,
-        projectSummary: p.projectSummary || "Technical analysis placeholder summary.",
-      }));
+    const projectsChanged =
+      JSON.stringify(localProjects) !== JSON.stringify(initialProjects);
 
-    const nextSavedData: ProfylPageData = {
-      ...savedData,
-      identity: {
-        ...savedData.identity,
-        ...localProfile,
-      },
-      projects: updatedFeaturedProjects,
-    };
-
-    setSavedData(nextSavedData);
-
-    // Conceptually transition DRAFT status to PUBLISHED on save
-    if (profileStatus === "DRAFT") {
-      setProfileStatus("PUBLISHED");
+    if (projectsChanged) {
+      setIsProcessingOpen(true);
+      setProcessingState("preparing");
     }
 
-    // Sync baseline states to clear dirty status
-    setInitialProfile(JSON.parse(JSON.stringify(localProfile)));
-    setInitialProjects(JSON.parse(JSON.stringify(localProjects)));
+    try {
+      const response = await saveChangesAction({
+        profile: localProfile,
+        projects: localProjects,
+        hasProjectChanges: projectsChanged,
+      });
 
-    setSaveStatus("saved");
-    setTimeout(() => setSaveStatus("idle"), 2200);
+      if (!response.success || !response.canonicalData) {
+        toast.error(response.error || "Failed to save changes.");
+        setSaveStatus("idle");
+        setIsProcessingOpen(false);
+        return;
+      }
+
+      // 1. Set canonical ProfylPageData
+      setSavedData(response.canonicalData);
+
+      // 2. Local state synchronized
+      if (response.profileStatus) {
+        setProfileStatus(response.profileStatus);
+      }
+
+      const updatedProfile = mapRawProfileToLocal(response.rawProfile);
+      const updatedProjects = mapRawRepositoriesToLocal(
+        response.rawRepositories || [],
+      );
+
+      setLocalProfile(updatedProfile);
+      setLocalProjects(updatedProjects);
+
+      // 3. Sync baseline states to clear dirty status (isDirty = false)
+      setInitialProfile(JSON.parse(JSON.stringify(updatedProfile)));
+      setInitialProjects(JSON.parse(JSON.stringify(updatedProjects)));
+
+      if (projectsChanged && response.derivedDataFailed) {
+        setProcessingState("failed");
+        setSaveStatus("idle");
+        toast.warning(
+          "Changes saved, but analytics generation failed. Please try again.",
+        );
+      } else {
+        setIsProcessingOpen(false);
+        toast.success("Changes saved successfully!");
+        setSaveStatus("saved");
+        setTimeout(() => setSaveStatus("idle"), 2200);
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.error("Dashboard save request failed:", error);
+      toast.error("Couldn't save your changes. Please try again.");
+      setSaveStatus("idle");
+      setIsProcessingOpen(false);
+    }
+  };
+
+  const handleRetry = async () => {
+    setProcessingState("preparing");
+
+    try {
+      const response = await retryDerivedDataPipelineAction();
+
+      if (!response.success || !response.canonicalData) {
+        toast.error(
+          response.error || "Failed to retry derived data generation.",
+        );
+        setProcessingState("failed");
+        return;
+      }
+
+      setSavedData(response.canonicalData);
+
+      const updatedProfile = mapRawProfileToLocal(response.rawProfile);
+      const updatedProjects = mapRawRepositoriesToLocal(
+        response.rawRepositories || [],
+      );
+
+      setLocalProfile(updatedProfile);
+      setLocalProjects(updatedProjects);
+
+      setInitialProfile(JSON.parse(JSON.stringify(updatedProfile)));
+      setInitialProjects(JSON.parse(JSON.stringify(updatedProjects)));
+
+      setIsProcessingOpen(false);
+      toast.success("Analytics and AI insights synchronized successfully!");
+      setSaveStatus("idle");
+    } catch (error: any) {
+      toast.error(
+        error.message || "An unexpected error occurred during retry.",
+      );
+      setProcessingState("failed");
+    }
   };
 
   return (
@@ -359,9 +578,16 @@ export function DashboardProvider({
         saveChanges,
         discardEdits,
         getLastActiveTab,
+        refreshState,
+        retryRefresh: checkFreshness,
       }}
     >
       {children}
+      <SaveProcessingModal
+        open={isProcessingOpen}
+        state={processingState}
+        onRetry={handleRetry}
+      />
     </DashboardContext.Provider>
   );
 }

@@ -9,6 +9,7 @@ import {
 } from "./DashboardContext";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
+import DashboardStatusBar from "./DashboardStatusBar";
 import { ProfylPageData } from "@/types/profyl-page";
 
 interface DashboardShellProps {
@@ -41,6 +42,9 @@ export default function DashboardShell({
         <div className="pl-[240px] flex-1 flex flex-col min-w-0 min-h-screen">
           {/* Sticky Topbar header */}
           <Topbar />
+
+          {/* Persistent status bar for active/failed refresh notifications */}
+          <DashboardStatusBar />
 
           {/* Render children views (tabs) */}
           <main className="flex-1 relative overflow-hidden bg-[#0D0D0D]">

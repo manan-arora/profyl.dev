@@ -76,10 +76,16 @@ describe("Analytics Engine - computeAnalytics", () => {
   ];
 
   it("should perform successful complete computation when Technical Range is available", async () => {
-    vi.mocked(prisma.gitHubCache.findUnique).mockResolvedValueOnce(mockGithubCache as any);
-    vi.mocked(prisma.leetCodeCache.findUnique).mockResolvedValueOnce(mockLeetcodeCache as any);
+    vi.mocked(prisma.gitHubCache.findUnique).mockResolvedValueOnce(
+      mockGithubCache as any,
+    );
+    vi.mocked(prisma.leetCodeCache.findUnique).mockResolvedValueOnce(
+      mockLeetcodeCache as any,
+    );
     vi.mocked(prisma.analytics.findUnique).mockResolvedValueOnce(null);
-    vi.mocked(prisma.repository.findMany).mockResolvedValueOnce(mockUserRepos as any);
+    vi.mocked(prisma.repository.findMany).mockResolvedValueOnce(
+      mockUserRepos as any,
+    );
     vi.mocked(oauth.getGithubAccessToken).mockResolvedValueOnce("token123");
 
     // 1 analyzed repo with React -> Frontend (5 points)
@@ -108,7 +114,10 @@ describe("Analytics Engine - computeAnalytics", () => {
 
     // Verify token retrieval & repository scans
     expect(oauth.getGithubAccessToken).toHaveBeenCalledWith("user123");
-    expect(featuredRepos.analyzeFeaturedRepositories).toHaveBeenCalledWith("user123", "token123");
+    expect(featuredRepos.analyzeFeaturedRepositories).toHaveBeenCalledWith(
+      "user123",
+      "token123",
+    );
 
     // Technical Range calculated based on analyzed repo (Frontend signal weight = 5)
     expect(result.projectsScore).toBe(5);
@@ -121,10 +130,16 @@ describe("Analytics Engine - computeAnalytics", () => {
   });
 
   it("should successfully calculate Technical Range = 0 when repository is analyzed with zero recognized signals", async () => {
-    vi.mocked(prisma.gitHubCache.findUnique).mockResolvedValueOnce(mockGithubCache as any);
-    vi.mocked(prisma.leetCodeCache.findUnique).mockResolvedValueOnce(mockLeetcodeCache as any);
+    vi.mocked(prisma.gitHubCache.findUnique).mockResolvedValueOnce(
+      mockGithubCache as any,
+    );
+    vi.mocked(prisma.leetCodeCache.findUnique).mockResolvedValueOnce(
+      mockLeetcodeCache as any,
+    );
     vi.mocked(prisma.analytics.findUnique).mockResolvedValueOnce(null);
-    vi.mocked(prisma.repository.findMany).mockResolvedValueOnce(mockUserRepos as any);
+    vi.mocked(prisma.repository.findMany).mockResolvedValueOnce(
+      mockUserRepos as any,
+    );
     vi.mocked(oauth.getGithubAccessToken).mockResolvedValueOnce("token123");
 
     vi.mocked(featuredRepos.analyzeFeaturedRepositories).mockResolvedValueOnce({
@@ -149,10 +164,16 @@ describe("Analytics Engine - computeAnalytics", () => {
   });
 
   it("should exclude unsupported and failed repositories from Technical Range calculation", async () => {
-    vi.mocked(prisma.gitHubCache.findUnique).mockResolvedValueOnce(mockGithubCache as any);
-    vi.mocked(prisma.leetCodeCache.findUnique).mockResolvedValueOnce(mockLeetcodeCache as any);
+    vi.mocked(prisma.gitHubCache.findUnique).mockResolvedValueOnce(
+      mockGithubCache as any,
+    );
+    vi.mocked(prisma.leetCodeCache.findUnique).mockResolvedValueOnce(
+      mockLeetcodeCache as any,
+    );
     vi.mocked(prisma.analytics.findUnique).mockResolvedValueOnce(null);
-    vi.mocked(prisma.repository.findMany).mockResolvedValueOnce(mockUserRepos as any);
+    vi.mocked(prisma.repository.findMany).mockResolvedValueOnce(
+      mockUserRepos as any,
+    );
     vi.mocked(oauth.getGithubAccessToken).mockResolvedValueOnce("token123");
 
     vi.mocked(featuredRepos.analyzeFeaturedRepositories).mockResolvedValueOnce({
@@ -212,13 +233,19 @@ describe("Analytics Engine - computeAnalytics", () => {
     expect(result.components.technicalRange?.signals).not.toContain("AI / ML");
   });
 
-  it("should fall back to previous Analytics projectsScore when zero repositories are successfully analyzed", async () => {
-    vi.mocked(prisma.gitHubCache.findUnique).mockResolvedValueOnce(mockGithubCache as any);
-    vi.mocked(prisma.leetCodeCache.findUnique).mockResolvedValueOnce(mockLeetcodeCache as any);
+  it("should treat unsupported-only repositories as a fresh zero-signal result", async () => {
+    vi.mocked(prisma.gitHubCache.findUnique).mockResolvedValueOnce(
+      mockGithubCache as any,
+    );
+    vi.mocked(prisma.leetCodeCache.findUnique).mockResolvedValueOnce(
+      mockLeetcodeCache as any,
+    );
     vi.mocked(prisma.analytics.findUnique).mockResolvedValueOnce({
       projectsScore: 42,
     } as any);
-    vi.mocked(prisma.repository.findMany).mockResolvedValueOnce(mockUserRepos as any);
+    vi.mocked(prisma.repository.findMany).mockResolvedValueOnce(
+      mockUserRepos as any,
+    );
     vi.mocked(oauth.getGithubAccessToken).mockResolvedValueOnce("token123");
 
     vi.mocked(featuredRepos.analyzeFeaturedRepositories).mockResolvedValueOnce({
@@ -237,16 +264,66 @@ describe("Analytics Engine - computeAnalytics", () => {
 
     const result = await computeAnalytics("user123");
 
+    expect(result.projectsScore).toBe(0);
+    expect(result.components.technicalRange).toEqual({
+      score: 0,
+      signals: [],
+    });
+  });
+
+  it("should preserve previous project score when current featured analysis fails", async () => {
+    vi.mocked(prisma.gitHubCache.findUnique).mockResolvedValueOnce(
+      mockGithubCache as any,
+    );
+    vi.mocked(prisma.leetCodeCache.findUnique).mockResolvedValueOnce(
+      mockLeetcodeCache as any,
+    );
+    vi.mocked(prisma.analytics.findUnique).mockResolvedValueOnce({
+      projectsScore: 42,
+    } as any);
+    vi.mocked(prisma.repository.findMany).mockResolvedValueOnce(
+      mockUserRepos as any,
+    );
+    vi.mocked(oauth.getGithubAccessToken).mockResolvedValueOnce("token123");
+
+    vi.mocked(featuredRepos.analyzeFeaturedRepositories).mockResolvedValueOnce({
+      repositories: [
+        {
+          repositoryId: "repo_failed",
+          parsedManifests: [],
+          artifacts: [],
+          technologies: [],
+          outcome: "failed",
+          error: "GitHub API request failed",
+        },
+      ],
+      totalRepositories: 1,
+      analyzedRepositories: 0,
+    });
+
+    const result = await computeAnalytics("user123");
+
     expect(result.projectsScore).toBe(42);
+    expect(result.components.technicalRange).toEqual({
+      score: 42,
+      signals: [],
+    });
+
     expect(result.profylScore).not.toBeNull();
     expect(result.tier).not.toBeNull();
   });
 
   it("should return null for projectsScore, profylScore, and tier when zero analyzed repos and no previous Analytics exist", async () => {
-    vi.mocked(prisma.gitHubCache.findUnique).mockResolvedValueOnce(mockGithubCache as any);
-    vi.mocked(prisma.leetCodeCache.findUnique).mockResolvedValueOnce(mockLeetcodeCache as any);
+    vi.mocked(prisma.gitHubCache.findUnique).mockResolvedValueOnce(
+      mockGithubCache as any,
+    );
+    vi.mocked(prisma.leetCodeCache.findUnique).mockResolvedValueOnce(
+      mockLeetcodeCache as any,
+    );
     vi.mocked(prisma.analytics.findUnique).mockResolvedValueOnce(null); // No previous analytics
-    vi.mocked(prisma.repository.findMany).mockResolvedValueOnce(mockUserRepos as any);
+    vi.mocked(prisma.repository.findMany).mockResolvedValueOnce(
+      mockUserRepos as any,
+    );
     vi.mocked(oauth.getGithubAccessToken).mockResolvedValueOnce("token123");
 
     vi.mocked(featuredRepos.analyzeFeaturedRepositories).mockResolvedValueOnce({

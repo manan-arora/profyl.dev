@@ -16,7 +16,6 @@ vi.mock("@google/genai", () => {
 });
 
 const mockContext: AIContext = {
-  developer: { name: "Test Dev" },
   evaluation: {
     profylScore: 800,
     tier: "STRONG",

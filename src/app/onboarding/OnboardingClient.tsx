@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { OnboardingProjects } from "@/components/onboarding/OnboardingProjects";
 import { Repo } from "@/components/onboarding/RepoCard";
 import { saveFeaturedProjectsAction } from "@/app/onboarding/actions";
@@ -19,8 +18,6 @@ export default function OnboardingClient({
   resumeAtLeetcode = false,
   isLeetcodeVerified = false,
 }: OnboardingClientProps) {
-  const router = useRouter();
-
   /**
    * If resumeAtLeetcode is true, we immediately open the modal.
    * This is part of the resumable onboarding logic where returning users
@@ -39,7 +36,6 @@ export default function OnboardingClient({
 
         toast.success("Featured projects saved successfully");
         setIsModalOpen(true);
-
       } catch {
         const message = "Unable to save featured projects. Please try again.";
 
@@ -53,7 +49,7 @@ export default function OnboardingClient({
 
   return (
     <>
-      {/* 
+      {/*
         Hide the Project Selection UI entirely when resuming from LeetCode step.
         This provides a cleaner UX as the project selection step is already persisted.
       */}

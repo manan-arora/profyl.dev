@@ -33,6 +33,7 @@ export type ProfylPageData = {
     avatarUrl: string | null;
     name: string;
     currentRole: string | null;
+    currentCompany: string | null;
     location: string | null;
     yearsExperience: number | null;
     bio: string | null;
@@ -41,6 +42,10 @@ export type ProfylPageData = {
     linkedinUrl: string | null;
     portfolioUrl: string | null;
     resumeUrl: string | null;
+    college: string | null;
+    degree: string | null;
+    branch: string | null;
+    graduationYear: number | null;
     email: string | null;
     techStack: string[];
   };

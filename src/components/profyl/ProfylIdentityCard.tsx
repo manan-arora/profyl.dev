@@ -59,14 +59,87 @@ export function ProfylIdentityCard({ data }: { data: ProfylPageData }) {
     .slice(0, 2)
     .toUpperCase() || "PR";
 
-  // Build metadata string line (e.g. "Senior Engineer · Berlin · 5 YOE")
-  const metadataParts = [];
-  if (identity.currentRole) metadataParts.push(identity.currentRole);
-  if (identity.location) metadataParts.push(identity.location);
-  if (identity.yearsExperience !== null) {
-    metadataParts.push(`${identity.yearsExperience} YOE`);
+  const handleMouseEnter = (e: React.MouseEvent<HTMLSpanElement>) => {
+    const el = e.currentTarget;
+    if (el.scrollWidth > el.clientWidth) {
+      el.title = el.textContent || "";
+    } else {
+      el.removeAttribute("title");
+    }
+  };
+
+  const row1Items = [];
+  if (identity.currentRole) {
+    row1Items.push(
+      <span
+        key="role"
+        className="inline-block max-w-[220px] truncate align-bottom"
+        onMouseEnter={handleMouseEnter}
+      >
+        {identity.currentRole}
+      </span>
+    );
   }
-  const metadataLine = metadataParts.join(" · ");
+  if (identity.currentCompany) {
+    row1Items.push(
+      <span
+        key="company"
+        className="inline-block max-w-[160px] truncate align-bottom"
+        onMouseEnter={handleMouseEnter}
+      >
+        {identity.currentCompany}
+      </span>
+    );
+  }
+
+  if (identity.yearsExperience !== null) {
+    const yoeText = `${identity.yearsExperience} YOE`;
+    row1Items.push(
+      <span
+        key="yoe"
+        className="inline-block max-w-[50px] truncate align-bottom shrink-0"
+        onMouseEnter={handleMouseEnter}
+      >
+        {yoeText}
+      </span>
+    );
+  }
+
+  const row2Items = [];
+  const degreeBranchParts = [];
+  if (identity.degree) degreeBranchParts.push(identity.degree);
+  if (identity.branch) degreeBranchParts.push(identity.branch);
+  const degreeBranchStr = degreeBranchParts.join(" ");
+
+  if (degreeBranchStr) {
+    row2Items.push(
+      <span
+        key="degreeBranch"
+        className="inline-block max-w-[120px] truncate align-bottom"
+        onMouseEnter={handleMouseEnter}
+      >
+        {degreeBranchStr}
+      </span>
+    );
+  }
+  if (identity.college) {
+    row2Items.push(
+      <span
+        key="college"
+        className="inline-block max-w-[150px] truncate align-bottom"
+        onMouseEnter={handleMouseEnter}
+      >
+        {identity.college}
+      </span>
+    );
+  }
+  if (identity.graduationYear) {
+    row2Items.push(
+      <span key="year" className="shrink-0">
+        {identity.graduationYear}
+      </span>
+    );
+  }
 
   return (
     <div className="relative lg:h-full lg:flex lg:flex-col">
@@ -96,13 +169,32 @@ export function ProfylIdentityCard({ data }: { data: ProfylPageData }) {
                 {identity.name}
               </div>
 
-              {metadataLine ? (
-                <div className="font-mono text-xs text-white/55 mt-1">
-                  {metadataLine}
+              {row1Items.length === 0 && row2Items.length === 0 ? (
+                <div className="font-mono text-xs text-white/40 mt-1 italic">
+                  Role, location, and education info not added yet.
                 </div>
               ) : (
-                <div className="font-mono text-xs text-white/40 mt-1 italic">
-                  Role, location and experience not added yet.
+                <div className="flex flex-col gap-1 mt-1">
+                  {row1Items.length > 0 && (
+                    <div className="font-mono text-xs text-white/55 flex items-center whitespace-nowrap overflow-hidden leading-normal">
+                      {row1Items.map((item, index) => (
+                        <span key={item.key || index} className="inline-flex items-center min-w-0 shrink-0">
+                          {index > 0 && <span className="mx-1.5 text-white/30 select-none shrink-0">·</span>}
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {row2Items.length > 0 && (
+                    <div className="font-mono text-xs text-white/55 flex items-center whitespace-nowrap overflow-hidden leading-normal">
+                      {row2Items.map((item, index) => (
+                        <span key={item.key || index} className="inline-flex items-center">
+                          {index > 0 && <span className="mx-1.5 text-white/30 select-none">·</span>}
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

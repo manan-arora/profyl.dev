@@ -77,7 +77,7 @@ export interface AnalyticsComputationResult {
  * @returns The complete AnalyticsComputationResult holding all component scores and breakdown metrics
  */
 export async function computeAnalytics(
-  userId: string
+  userId: string,
 ): Promise<AnalyticsComputationResult> {
   // 1. Load all required data in parallel
   const [githubCache, leetcodeCache, previousAnalytics, allRepos] =
@@ -94,7 +94,7 @@ export async function computeAnalytics(
   // 2. Perform analysis on featured repositories
   const featuredAnalysis = await analyzeFeaturedRepositories(
     userId,
-    accessToken
+    accessToken,
   );
 
   // 3. Calculate Technical Range
@@ -104,24 +104,34 @@ export async function computeAnalytics(
     signals: string[];
   } | null = null;
 
-  const analyzedRepos = featuredAnalysis.repositories.filter(
-    (r) => r.outcome === "analyzed"
+  const allFeaturedRepoResults = featuredAnalysis.repositories;
+  const analyzedRepos = allFeaturedRepoResults.filter(
+    (r) => r.outcome === "analyzed",
+  );
+
+  const hasFailedRepos = allFeaturedRepoResults.some(
+    (r) => r.outcome === "failed",
   );
 
   if (analyzedRepos.length > 0) {
     const allTechnologies = analyzedRepos.flatMap((r) => r.technologies);
     technicalRangeComponentResult = calculateTechnicalRange(allTechnologies);
     technicalRangeScore = technicalRangeComponentResult.score;
-  } else {
-    // If no repos were analyzed successfully, fall back to previous analytics value if present
-    if (
-      previousAnalytics &&
-      previousAnalytics.projectsScore !== null &&
-      previousAnalytics.projectsScore !== undefined
-    ) {
+  } else if (allFeaturedRepoResults.length > 0 && !hasFailedRepos) {
+    // All current featured repos completed processing without failure,
+    // but none produced analyzable technical signals.
+    technicalRangeScore = 0;
+    technicalRangeComponentResult = {
+      score: 0,
+      signals: [],
+    };
+  } else if (allFeaturedRepoResults.length > 0) {
+    // No valid analyzed repos and at least one actual failure.
+    // Preserve the previous valid score rather than replacing it with 0.
+    if (previousAnalytics?.projectsScore != null) {
       technicalRangeScore = previousAnalytics.projectsScore;
       technicalRangeComponentResult = {
-        score: technicalRangeScore,
+        score: previousAnalytics.projectsScore,
         signals: [],
       };
     }
@@ -163,10 +173,10 @@ export async function computeAnalytics(
 
   // 7. Calculate Consistency
   const githubConsistencyMetrics = analyzeGithubCalendar(
-    githubCache?.contributionCalendar as any
+    githubCache?.contributionCalendar as any,
   );
   const leetcodeConsistencyMetrics = analyzeLeetcodeCalendar(
-    leetcodeCache?.normalizedSubmissionCalendar as any
+    leetcodeCache?.normalizedSubmissionCalendar as any,
   );
 
   const consistencyResult = calculateConsistency({

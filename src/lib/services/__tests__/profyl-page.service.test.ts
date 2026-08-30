@@ -55,9 +55,14 @@ describe("profylPageService", () => {
       profile: {
         name: "Profile Name",
         currentRole: "Backend Engineer",
+        currentCompany: "Acme Corp",
         location: "Berlin, DE",
         yearsExperience: 5,
         bio: "Bio details",
+        college: "Tech University",
+        degree: "M.S.",
+        branch: "Software Engineering",
+        graduationYear: 2020,
         resumeUrl: "https://example.com/resume.pdf",
         techStack: ["Node.js", "TypeScript"],
       },
@@ -159,6 +164,11 @@ describe("profylPageService", () => {
 
       expect(data).not.toBeNull();
       expect(data?.identity.name).toBe("Profile Name"); // Profile.name precedence
+      expect(data?.identity.currentCompany).toBe("Acme Corp");
+      expect(data?.identity.college).toBe("Tech University");
+      expect(data?.identity.degree).toBe("M.S.");
+      expect(data?.identity.branch).toBe("Software Engineering");
+      expect(data?.identity.graduationYear).toBe(2020);
       expect(data?.identity.avatarUrl).toBe("https://example.com/avatar.png");
       expect(data?.identity.leetcodeUrl).toBe("https://leetcode.com/lcuser");
       expect(data?.evaluation.profylScore).toBe(750);

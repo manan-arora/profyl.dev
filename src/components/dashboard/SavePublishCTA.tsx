@@ -3,7 +3,7 @@
 import { useDashboard } from "./DashboardContext";
 
 export default function SavePublishCTA() {
-  const { isDirty, saveState, profileStatus, saveChanges } = useDashboard();
+  const { isDirty, saveState, profileStatus, saveChanges, refreshState } = useDashboard();
 
   const getLabel = () => {
     if (saveState === "saving") return "Saving...";
@@ -13,12 +13,14 @@ export default function SavePublishCTA() {
     return label;
   };
 
-  const isActive = saveState !== "saving" && (profileStatus === "DRAFT" || isDirty);
+  const isRefreshing = refreshState === "refreshing";
+  const isActive = saveState !== "saving" && !isRefreshing && (profileStatus === "DRAFT" || isDirty);
 
   return (
     <button
       onClick={saveChanges}
       disabled={!isActive}
+      title={isRefreshing ? "Profile data refresh in progress. Save will be enabled once it's complete." : undefined}
       className={`text-xs font-semibold px-4 py-2 transition rounded-none font-mono ${
         isActive
           ? "bg-neon text-[#0D0D0D] hover:opacity-90 cursor-pointer shadow-[0_0_12px_rgba(199,255,65,0.2)]"

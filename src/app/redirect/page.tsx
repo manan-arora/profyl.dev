@@ -28,22 +28,20 @@ export default async function RedirectPage() {
     }
 
     if (attempt < MAX_ATTEMPTS - 1) {
-      await new Promise((resolve) =>
-        setTimeout(resolve, RETRY_DELAY_MS)
-      );
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
     }
   }
 
   // Clerk authentication succeeded, but Profyl user provisioning failed/didn't complete.
   if (!user) {
     throw new Error(
-      "Your account is still being set up. Please try again in a moment."
+      "Your account is still being set up. Please try again in a moment.",
     );
   }
 
   switch (user.profileStatus) {
     case "INCOMPLETE":
-      redirect("/onboarding/projects");
+      redirect("/onboarding");
 
     case "DRAFT":
     case "PUBLISHED":

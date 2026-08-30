@@ -11,8 +11,6 @@ model User {
   id                       String         @id @default(cuid())
   clerkId                  String         @unique
   email                    String         @unique
-  name                     String?
-  avatarUrl                String?
   githubId                 String         @unique
   githubUsername           String         @unique
   slug                     String         @unique
@@ -23,6 +21,8 @@ model User {
   createdAt                DateTime       @default(now())
   updatedAt                DateTime       @updatedAt
   featuredProjectsSelected Boolean        @default(false)
+  avatarUrl                String?
+  name                     String?
   aiInsights               AIInsights?
   analytics                Analytics?
   githubCache              GitHubCache?
@@ -37,13 +37,11 @@ model User {
 model Profile {
   id              String   @id @default(cuid())
   userId          String   @unique
-  name            String?
   headline        String?
   bio             String?
   currentRole     String?
   currentCompany  String?
   yearsExperience Int?
-  location        String?
   college         String?
   graduationYear  Int?
   techStack       Json?
@@ -52,6 +50,10 @@ model Profile {
   resumeUrl       String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  name            String?
+  branch          String?
+  degree          String?
+  location        String?
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -67,7 +69,6 @@ model Repository {
   topics               Json?
   githubUrl            String
   homepageUrl          String?
-  defaultBranch        String    @default("main")
   isFork               Boolean
   isArchived           Boolean
   isFeatured           Boolean   @default(false)
@@ -80,9 +81,10 @@ model Repository {
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
   githubUpdatedAt      DateTime  @default(now())
-  detectedSignals Json?
   detectedTechnologies Json?
-  readme               String?   @db.Text
+  defaultBranch        String    @default("main")
+  detectedSignals      Json?
+  readme               String?
   user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -91,50 +93,50 @@ model Repository {
 }
 
 model GitHubCache {
-  id                   String    @id @default(cuid())
-  userId               String    @unique
-  followers            Int?
-  following            Int?
-  publicRepoCount      Int?
-  totalContributionsLastYear Int?
-  contributionCalendar       Json?
-  longestStreak        Int?
-  activeWeeks          Int?
-  ossPrsMerged         Int?
-  starsEarned          Int?
-  forksEarned          Int?
-  languageDistribution Json?
-  lastSyncedAt         DateTime?
-  cacheExpiresAt       DateTime?
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
-  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model LeetCodeCache {
   id                         String    @id @default(cuid())
   userId                     String    @unique
-  username                   String?   @unique
-  contestRating              Int?
-  percentile                 Float?
-  problemsSolved             Int?
-  easySolved                 Int?
-  mediumSolved               Int?
-  hardSolved                 Int?
-  contestsParticipated       Int?
-  ratingHistory              Json?
-  submissionCalendar         Json?
-  normalizedSubmissionCalendar Json?
-  verificationToken          String?
-  verificationTokenExpiresAt DateTime?
-  verifiedAt                 DateTime?
+  followers                  Int?
+  following                  Int?
+  publicRepoCount            Int?
+  longestStreak              Int?
+  activeWeeks                Int?
+  ossPrsMerged               Int?
+  starsEarned                Int?
+  languageDistribution       Json?
   lastSyncedAt               DateTime?
   cacheExpiresAt             DateTime?
   createdAt                  DateTime  @default(now())
   updatedAt                  DateTime  @updatedAt
-  contestGlobalRanking       Int?
-  overallRanking             Int?
+  contributionCalendar       Json?
+  totalContributionsLastYear Int?
+  forksEarned                Int?
   user                       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LeetCodeCache {
+  id                           String    @id @default(cuid())
+  userId                       String    @unique
+  username                     String?   @unique
+  contestRating                Int?
+  percentile                   Float?
+  problemsSolved               Int?
+  easySolved                   Int?
+  mediumSolved                 Int?
+  hardSolved                   Int?
+  contestsParticipated         Int?
+  ratingHistory                Json?
+  submissionCalendar           Json?
+  verificationToken            String?
+  verificationTokenExpiresAt   DateTime?
+  verifiedAt                   DateTime?
+  lastSyncedAt                 DateTime?
+  cacheExpiresAt               DateTime?
+  createdAt                    DateTime  @default(now())
+  updatedAt                    DateTime  @updatedAt
+  contestGlobalRanking         Int?
+  overallRanking               Int?
+  normalizedSubmissionCalendar Json?
+  user                         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Analytics {
@@ -160,14 +162,14 @@ model AIInsights {
   userId        String    @unique
   aiSignal      String?
   aiSummary     String?
-  aiEvidence    String?
   strengthChips Json?
   sourceHash    String?
-  promptVersion String?
   modelVersion  String?
   generatedAt   DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  aiEvidence    String?
+  promptVersion String?
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 

@@ -140,7 +140,6 @@ export function ProfessionalSection() {
           </span>
         </div>
       </div>
-
       <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6">
         <label className="block">
           <span className="block font-mono text-[10px] uppercase tracking-[0.18em] text-white/45 mb-2">
@@ -152,6 +151,7 @@ export function ProfessionalSection() {
             onChange={(e) => updateProfile({ currentRole: e.target.value })}
             className={inputCls}
             placeholder="e.g. Backend Engineer"
+            maxLength={60}
           />
         </label>
 
@@ -165,6 +165,7 @@ export function ProfessionalSection() {
             onChange={(e) => updateProfile({ currentCompany: e.target.value })}
             className={inputCls}
             placeholder="e.g. Vercel (Independent if freelance)"
+            maxLength={60}
           />
         </label>
 
@@ -206,7 +207,7 @@ export function EducationSection() {
         </div>
       </div>
 
-      <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <label className="block">
           <span className="block font-mono text-[10px] uppercase tracking-[0.18em] text-white/45 mb-2">
             College / University
@@ -217,19 +218,45 @@ export function EducationSection() {
             onChange={(e) => updateProfile({ college: e.target.value })}
             className={inputCls}
             placeholder="e.g. Stanford University"
+            maxLength={80}
           />
         </label>
 
         <label className="block">
-          <span className="block font-mono text-[10px] uppercase tracking-[0.18em] text-white/45 mb-2">
-            Branch / Major
-          </span>
+          <div className="flex justify-between items-center mb-2">
+            <span className="block font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">
+              Degree
+            </span>
+            <span className="font-mono text-[8px] text-white/30 lowercase italic">
+              use short forms
+            </span>
+          </div>
+          <input
+            type="text"
+            value={localProfile.degree || ""}
+            onChange={(e) => updateProfile({ degree: e.target.value })}
+            className={inputCls}
+            placeholder="e.g. B.Tech, B.E., B.Sc., MCA"
+            maxLength={20}
+          />
+        </label>
+
+        <label className="block">
+          <div className="flex justify-between items-center mb-2">
+            <span className="block font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">
+              Specialization
+            </span>
+            <span className="font-mono text-[8px] text-white/30 lowercase italic">
+              use short forms
+            </span>
+          </div>
           <input
             type="text"
             value={localProfile.branch}
             onChange={(e) => updateProfile({ branch: e.target.value })}
             className={inputCls}
-            placeholder="e.g. Computer Science"
+            placeholder="e.g. CSE, ECE, IT, AI/ML"
+            maxLength={30}
           />
         </label>
 
@@ -343,7 +370,7 @@ export function ConnectionsSection() {
 
 /* ---------- Resume Section ---------- */
 export function ResumeSection() {
-  const { localProfile } = useDashboard();
+  const { localProfile, updateProfile } = useDashboard();
 
   return (
     <section className="relative border border-white/[0.08] bg-[#111] rounded-none p-6">
@@ -352,53 +379,39 @@ export function ResumeSection() {
         <div className="flex items-center gap-2">
           <span className="size-1.5 bg-neon" />
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-neon">
-            Resume
+            Resume Link
           </span>
         </div>
       </div>
 
-      <div className="relative flex flex-col md:flex-row md:items-center gap-5 justify-between border border-white/[0.08] p-4 bg-white/[0.01] rounded-none">
-        <div className="flex items-center gap-4">
-          <div className="size-11 border border-white/[0.08] flex items-center justify-center font-mono text-[10px] text-neon bg-black rounded-none">
-            PDF
+      <div className="space-y-4">
+        <label className="block">
+          <span className="block font-mono text-[10px] uppercase tracking-[0.18em] text-white/45 mb-2">
+            Google Drive PDF Link
+          </span>
+          <input
+            type="url"
+            value={localProfile.resumeUrl}
+            onChange={(e) => updateProfile({ resumeUrl: e.target.value })}
+            className={inputCls}
+            placeholder="https://drive.google.com/file/d/.../view?usp=sharing"
+          />
+        </label>
+        
+        <div className="border border-white/[0.08] p-4 bg-white/[0.01] rounded-none flex items-start gap-3 select-none">
+          <span className="text-neon font-mono text-sm leading-none mt-0.5">ℹ</span>
+          <div className="space-y-1">
+            <h4 className="text-xs font-semibold text-white font-mono uppercase tracking-wider">
+              Sharing Requirements
+            </h4>
+            <p className="text-[10px] text-white/50 leading-relaxed font-mono">
+              Please ensure your Google Drive file permissions are set to:
+              <br />
+              <strong className="text-neon font-semibold">&quot;Anyone with the link&quot;</strong> so recruiters can view your resume.
+            </p>
           </div>
-          <div>
-            <div className="text-sm font-semibold">
-              {localProfile.resumeUrl ? "developer-resume.pdf" : "No resume uploaded yet."}
-            </div>
-            <div className="font-mono text-[9px] text-white/40 mt-0.5">
-              {localProfile.resumeUrl
-                ? "240 KB · Cloudinary persistent storage"
-                : "PDF only · Max size 5MB"}
-            </div>
-          </div>
-          {localProfile.resumeUrl && (
-            <span className="border border-neon/30 px-2 py-0.5 font-mono text-[8px] tracking-[0.18em] text-neon bg-neon/5 rounded-none">
-              VERIFIED
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className="border border-white/[0.08] px-3 py-2 text-xs text-white/75 hover:text-white hover:bg-white/[0.03] transition rounded-none cursor-pointer font-mono"
-          >
-            Upload PDF
-          </button>
-          {localProfile.resumeUrl && (
-            <button
-              type="button"
-              className="border border-transparent px-3 py-2 text-xs text-white/45 hover:text-white transition rounded-none cursor-pointer font-mono"
-            >
-              Remove
-            </button>
-          )}
         </div>
       </div>
-      <p className="mt-4 font-mono text-[9px] text-white/30">
-        * Persistent Cloudinary storage and resume parsing will be fully integrated in the next phase.
-      </p>
     </section>
   );
 }

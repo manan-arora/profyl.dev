@@ -14,18 +14,6 @@ import {
 } from "../analytics/calendar-analysis";
 import { LeetcodeContestHistoryItem } from "@/types/leetcode";
 
-export interface DeveloperAIContext {
-  name?: string;
-  headline?: string;
-  bio?: string;
-  currentRole?: string;
-  currentCompany?: string;
-  yearsExperience?: number;
-  college?: string;
-  graduationYear?: number;
-  declaredTechStack?: string[];
-}
-
 export interface EvaluationAIContext {
   profylScore: number | null;
   tier: Tier | null;
@@ -171,7 +159,6 @@ export interface ProjectAIContext {
 }
 
 export interface AIContext {
-  developer: DeveloperAIContext;
   evaluation: EvaluationAIContext;
   github: GitHubAIContext;
   leetcode: LeetCodeAIContext;
@@ -201,39 +188,6 @@ function boundReadme(readme?: string | null): string | null {
  * Pure, deterministic transformer that converts raw sources into structured AIContext.
  */
 export function buildAIContext(sources: AIContextSources): AIContext {
-  const profile = sources.profile;
-  const name =
-    profile?.name && profile.name.trim() !== "" ? profile.name : undefined;
-  const headline = profile?.headline ?? undefined;
-  const bio = profile?.bio ?? undefined;
-  const currentRole = profile?.currentRole ?? undefined;
-  const currentCompany = profile?.currentCompany ?? undefined;
-  const yearsExperience = profile?.yearsExperience ?? undefined;
-  const college = profile?.college ?? undefined;
-  const graduationYear = profile?.graduationYear ?? undefined;
-
-  let declaredTechStack: string[] | undefined = undefined;
-  if (profile?.techStack) {
-    if (Array.isArray(profile.techStack)) {
-      declaredTechStack = profile.techStack.filter(
-        (item): item is string => typeof item === "string"
-      );
-    }
-  }
-
-  const developer: DeveloperAIContext = {};
-  if (name !== undefined) developer.name = name;
-  if (headline !== undefined) developer.headline = headline;
-  if (bio !== undefined) developer.bio = bio;
-  if (currentRole !== undefined) developer.currentRole = currentRole;
-  if (currentCompany !== undefined) developer.currentCompany = currentCompany;
-  if (yearsExperience !== undefined)
-    developer.yearsExperience = yearsExperience;
-  if (college !== undefined) developer.college = college;
-  if (graduationYear !== undefined) developer.graduationYear = graduationYear;
-  if (declaredTechStack !== undefined)
-    developer.declaredTechStack = declaredTechStack;
-
   const res = sources.analyticsResult;
   const evaluation: EvaluationAIContext = {
     profylScore: res.profylScore,
@@ -520,7 +474,6 @@ export function buildAIContext(sources: AIContextSources): AIContext {
   );
 
   return {
-    developer,
     evaluation,
     github,
     leetcode,
