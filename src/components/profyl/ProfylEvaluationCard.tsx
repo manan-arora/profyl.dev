@@ -65,7 +65,7 @@ export function ProfylEvaluationCard({ data }: { data: ProfylPageData }) {
               </div>
               {evaluation.percentile !== null && (
                 <div className="font-mono text-[10px] text-white/45 mt-2 uppercase tracking-widest">
-                  Top {evaluation.percentile}% on Profyl
+                  Top {(100 - evaluation.percentile)}% on Profyl
                 </div>
               )}
             </div>

@@ -1,3 +1,5 @@
+"use client";
+
 import { ProfylPageData } from "@/types/profyl-page";
 import { CornerMarkers } from "./ProfylAISummary";
 import { Globe, Mail, FileText } from "lucide-react";
@@ -204,7 +206,7 @@ export function ProfylIdentityCard({ data }: { data: ProfylPageData }) {
           <div className="mt-5">
             {identity.bio ? (
               <div className="font-display italic text-lg text-white/80 leading-snug">
-                "{identity.bio}"
+                {identity.bio}
               </div>
             ) : (
               <div className="font-display italic text-lg text-white/40 leading-snug">
