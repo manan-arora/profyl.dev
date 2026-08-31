@@ -69,9 +69,6 @@ export function OnboardingProjects({
               <span className="font-display font-semibold tracking-tight text-lg text-white">
                 profyl
               </span>
-              <span className="font-mono text-[10px] text-neon ml-1 mt-0.5">
-                v1.0
-              </span>
             </div>
 
           </div>

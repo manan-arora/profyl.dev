@@ -43,5 +43,7 @@ next-env.d.ts
 
 /src/generated/prisma
 
+src/_reference/
+
 # profyl docs
 /docs/

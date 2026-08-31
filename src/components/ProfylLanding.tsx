@@ -739,21 +739,20 @@ function Footer() {
             <span className="font-display font-semibold text-white">profyl</span>
           </div>
           <span className="font-mono text-[10px] text-white/40 sm:ml-2">
-            © 2026 — Built because a README wasn't enough.
+            © 2026
           </span>
         </div>
-        <div className="flex gap-6 font-mono text-[11px] uppercase tracking-widest text-white/55">
-          <Link href="/" className="hover:text-neon transition-colors">
-            Home
-          </Link>
+        <div className="font-mono text-[10px] text-white/40">
+          Built by{" "}
           <a
-            href="https://x.com"
+            href="https://www.linkedin.com/in/mananarora04/"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-neon transition-colors"
+            className="underline hover:text-white transition-colors"
           >
-            Twitter
-          </a>
+            Manan
+          </a>{" "}
+          - because a README wasn't enough.
         </div>
       </div>
     </footer>

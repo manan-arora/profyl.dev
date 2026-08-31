@@ -427,6 +427,10 @@ export function ProfylProjects({ data }: { data: ProfylPageData }) {
               </div>
             );
           })}
+
+          {data.projects.length % 2 !== 0 && (
+            <div className="bg-[#0D0D0D] hidden md:block" aria-hidden="true" />
+          )}
         </div>
 
         {/* ===================================================== */}

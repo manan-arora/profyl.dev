@@ -169,7 +169,7 @@ export function ProfylEvaluationCard({ data }: { data: ProfylPageData }) {
         <div className="relative lg:h-full">
           <CornerMarkers />
 
-          <div className="relative bg-[#141414] border hairline min-h-[220px] lg:h-full flex flex-col justify-between">
+          <div className="relative bg-[#141414] border hairline min-h-[220px] h-full flex flex-col">
             <div className="flex items-center justify-between px-5 py-3 border-b hairline relative">
               <div className="flex items-center gap-1.5">
                 <span className="font-mono text-[10px] uppercase tracking-widest text-white/60">
@@ -225,7 +225,7 @@ export function ProfylEvaluationCard({ data }: { data: ProfylPageData }) {
               </div>
             </div>
 
-            <div className="radar-chart-container w-full flex items-center justify-center p-4">
+            <div className="radar-chart-container flex-1 w-full flex items-center justify-center p-4">
               <ResponsiveContainer width="100%" height={250}>
                 <RadarChart
                   cx="50%"

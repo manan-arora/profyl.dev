@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getProfylPageData } from "@/lib/services/profyl-page.service";
 import { PublicProfileClient } from "@/components/profyl/PublicProfileClient";
+import { ProfylFooter } from "@/components/profyl/ProfylFooter";
 import Link from "next/link";
 import Image from "next/image";
 import { Metadata } from "next";
@@ -142,24 +143,7 @@ export default async function PublicProfilePage({
         </main>
 
         {/* Minimal Footer */}
-        <footer className="border-t hairline bg-[#0D0D0D] py-6 z-10 relative">
-          <div className="mx-auto max-w-[1400px] w-full px-6 lg:px-10 flex justify-between items-center text-xs text-white/40">
-            <span>© 2026 profyl.dev</span>
-            <div className="flex gap-4">
-              <Link href="/" className="hover:text-white transition-colors">
-                Home
-              </Link>
-              <a
-                href="https://x.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-white transition-colors"
-              >
-                Twitter
-              </a>
-            </div>
-          </div>
-        </footer>
+        <ProfylFooter />
       </div>
     );
   }
