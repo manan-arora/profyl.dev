@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { ProfylFooter } from "@/components/profyl/ProfylFooter";
+import { DocsNav } from "@/components/docs/DocsNav";
 
 export const metadata: Metadata = {
   title: "How Profyl Works - Methodology & Scoring",
@@ -52,35 +53,9 @@ export default function DocsScoringPage() {
 
       {/* Main Container */}
       <main className="flex-1 max-w-[1400px] w-full mx-auto px-6 lg:px-10 py-12 md:py-16 z-10 relative flex flex-col lg:flex-row gap-10">
-        {/* Navigation - Sidebar for Desktop, Horizontal-scroll on Mobile */}
+        {/* Navigation - Sidebar for Desktop, Hamburger Menu/Dropdown on Mobile */}
         <aside className="lg:w-64 shrink-0 lg:sticky lg:top-24 h-fit">
-          <div className="font-mono text-[10px] uppercase tracking-widest text-white/40 mb-4 hidden lg:block">
-            Navigation
-          </div>
-          {/* Desktop Nav */}
-          <nav className="hidden lg:flex flex-col gap-2.5">
-            {DOC_SECTIONS.map((sec) => (
-              <a
-                key={sec.id}
-                href={`#${sec.id}`}
-                className="text-xs text-white/60 hover:text-neon hover:pl-1 transition-all font-mono"
-              >
-                {sec.label}
-              </a>
-            ))}
-          </nav>
-          {/* Mobile Nav */}
-          <nav className="flex lg:hidden overflow-x-auto pb-3 gap-4 border-b hairline no-scrollbar scroll-smooth snap-x w-full">
-            {DOC_SECTIONS.map((sec) => (
-              <a
-                key={sec.id}
-                href={`#${sec.id}`}
-                className="text-xs text-white/60 hover:text-neon whitespace-nowrap font-mono snap-align-start shrink-0 mr-4"
-              >
-                {sec.label}
-              </a>
-            ))}
-          </nav>
+          <DocsNav sections={DOC_SECTIONS} />
         </aside>
 
         {/* Content Area */}
