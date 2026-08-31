@@ -35,11 +35,30 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://profyl.dev"),
   title: {
-    default: "Profyl - The Living Developer Profile",
-    template: "%s - Profyl",
+    default: "Profyl — See the signal behind the code",
+    template: "%s | Profyl",
   },
-  description: "A living developer profile built from your work, activity, and engineering signals.",
+  description:
+    "Build a developer profile backed by real GitHub and LeetCode signals. Show what you've built, solved, and contributed.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Profyl — See the signal behind the code",
+    description:
+      "Build a developer profile backed by real GitHub and LeetCode signals. Show what you've built, solved, and contributed.",
+    url: "https://profyl.dev",
+    siteName: "Profyl",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Profyl — See the signal behind the code",
+    description:
+      "Build a developer profile backed by real GitHub and LeetCode signals. Show what you've built, solved, and contributed.",
+  },
 };
 
 export default function RootLayout({

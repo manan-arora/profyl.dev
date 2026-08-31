@@ -167,9 +167,9 @@ export function ProfylIdentityCard({ data }: { data: ProfylPageData }) {
 
             {/* Identity information */}
             <div className="flex-1 min-w-0 w-full">
-              <div className="font-display text-3xl lg:text-4xl font-semibold tracking-tight text-white break-words">
+              <h1 className="font-display text-3xl lg:text-4xl font-semibold tracking-tight text-white break-words">
                 {identity.name}
-              </div>
+              </h1>
 
               {row1Items.length === 0 && row2Items.length === 0 ? (
                 <div className="font-mono text-xs text-white/40 mt-1 italic">

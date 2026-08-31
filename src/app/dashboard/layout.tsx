@@ -4,6 +4,16 @@ import { prisma } from "@/lib/prisma";
 import { getProfylPageData } from "@/lib/services/profyl-page.service";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
 export default async function DashboardLayout({
   children,
 }: {

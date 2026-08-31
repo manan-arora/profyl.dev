@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 const DOC_SECTIONS = [
-  { id: "profyl-rating", label: "Profyl Rating" },
+  { id: "profyl-rating", label: "Profyl Score" },
   { id: "score-composition", label: "Score Composition" },
   { id: "specialization-radar", label: "Specialization Radar" },
   { id: "build-activity", label: "Build Activity" },
@@ -24,7 +24,7 @@ const DOC_SECTIONS = [
 
 export default function DocsScoringPage() {
   return (
-    <div className="min-h-screen bg-[#0D0D0D] text-white flex flex-col relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-[#0D0D0D] text-white flex flex-col relative overflow-x-clip font-sans">
       {/* Visual background grid */}
       <div className="absolute inset-0 grid-bg opacity-30 pointer-events-none" />
 
@@ -54,7 +54,7 @@ export default function DocsScoringPage() {
       {/* Main Container */}
       <main className="flex-1 max-w-[1400px] w-full mx-auto px-6 lg:px-10 py-12 md:py-16 z-10 relative flex flex-col lg:flex-row gap-10">
         {/* Navigation - Sidebar for Desktop, Hamburger Menu/Dropdown on Mobile */}
-        <aside className="lg:w-64 shrink-0 lg:sticky lg:top-24 h-fit">
+        <aside className="lg:w-64 shrink-0 lg:sticky lg:top-24 h-fit lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto custom-scrollbar">
           <DocsNav sections={DOC_SECTIONS} />
         </aside>
 
@@ -70,7 +70,7 @@ export default function DocsScoringPage() {
             </p>
           </div>
 
-          {/* 1. Profyl Rating */}
+          {/* 1. Profyl Score */}
           <section id="profyl-rating" className="space-y-4 scroll-mt-24">
             <h2 className="font-display text-xl font-semibold text-white tracking-tight border-b hairline pb-2">
               Profyl Score

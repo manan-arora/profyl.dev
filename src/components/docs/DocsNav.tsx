@@ -20,34 +20,54 @@ export function DocsNav({ sections }: DocsNavProps) {
 
   // Track active section on scroll to highlight in the nav
   useEffect(() => {
-    const handleIntersect = (entries: IntersectionObserverEntry[]) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          setActiveSection(entry.target.id);
-        }
-      });
-    };
+    if (!sections.length) return;
 
-    const observer = new IntersectionObserver(handleIntersect, {
-      rootMargin: "-20% 0px -60% 0px",
-    });
+    // Default to first section initially
+    setActiveSection(sections[0].id);
 
-    sections.forEach((sec) => {
-      const el = document.getElementById(sec.id);
-      if (el) {
-        observer.observe(el);
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+
+      // Bottom of page check
+      if (windowHeight + scrollPosition >= documentHeight - 60) {
+        setActiveSection(sections[sections.length - 1].id);
+        return;
       }
-    });
 
-    // Set initial active section if none are intersecting yet
-    if (sections.length > 0 && !activeSection) {
-      setActiveSection(sections[0].id);
-    }
+      // Top of page check
+      if (scrollPosition < 80) {
+        setActiveSection(sections[0].id);
+        return;
+      }
 
-    return () => {
-      observer.disconnect();
+      // Target scroll offset below sticky header (120px)
+      const headerOffset = 120;
+      let currentSectionId = sections[0].id;
+
+      for (const sec of sections) {
+        const el = document.getElementById(sec.id);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= headerOffset) {
+            currentSectionId = sec.id;
+          } else {
+            break;
+          }
+        }
+      }
+
+      setActiveSection(currentSectionId);
     };
-  }, [sections, activeSection]);
+
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [sections]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -86,6 +106,7 @@ export function DocsNav({ sections }: DocsNavProps) {
               <a
                 key={sec.id}
                 href={`#${sec.id}`}
+                onClick={() => handleLinkClick(sec.id)}
                 className={`text-xs hover:text-neon hover:pl-1 transition-all font-mono block py-0.5 ${
                   isActive ? "text-neon pl-1 font-semibold" : "text-white/60"
                 }`}

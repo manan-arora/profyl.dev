@@ -7,6 +7,10 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Onboarding",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default async function OnboardingPage() {

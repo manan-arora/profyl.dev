@@ -29,9 +29,44 @@ export async function generateMetadata({
     };
   }
 
+  if (!user.isPublished) {
+    return {
+      title: "Profile Not Published",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
   const displayName = user.profile?.name || user.githubUsername || slug;
+  const title = `${displayName} — Developer Profile | Profyl`;
+  const description = user.profile?.bio
+    ? user.profile.bio
+    : user.profile?.currentRole
+      ? `${displayName} — ${user.profile.currentRole}. View developer profile, work, and engineering signals on Profyl.`
+      : `View ${displayName}'s living developer profile, work, and engineering signals on Profyl.`;
+
+  const canonicalUrl = `https://profyl.dev/${slug}`;
+
   return {
-    title: displayName,
+    title,
+    description,
+    alternates: {
+      canonical: `/${slug}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: canonicalUrl,
+      siteName: "Profyl",
+      type: "profile",
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+    },
   };
 }
 
@@ -129,5 +164,34 @@ export default async function PublicProfilePage({
     notFound();
   }
 
-  return <PublicProfileClient initialData={data} slug={slug} />;
+  const sameAsUrls = [
+    data.identity.githubUrl,
+    data.identity.leetcodeUrl,
+    data.identity.linkedinUrl,
+    data.identity.portfolioUrl,
+  ].filter((url): url is string => Boolean(url && url.trim().length > 0));
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    mainEntity: {
+      "@type": "Person",
+      name: data.identity.name,
+      ...(data.identity.currentRole ? { jobTitle: data.identity.currentRole } : {}),
+      ...(data.identity.bio ? { description: data.identity.bio } : {}),
+      ...(data.identity.avatarUrl ? { image: data.identity.avatarUrl } : {}),
+      ...(sameAsUrls.length > 0 ? { sameAs: sameAsUrls } : {}),
+      ...(data.identity.techStack.length > 0 ? { knowsAbout: data.identity.techStack } : {}),
+    },
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <PublicProfileClient initialData={data} slug={slug} />
+    </>
+  );
 }
