@@ -6,13 +6,10 @@ import { Navbar } from "@/components/Navbar";
 export default function NavbarWrapper() {
   const pathname = usePathname();
 
-  const hideNavbar =
-    pathname.startsWith("/sign-in") ||
-    pathname.startsWith("/sign-up") ||
-    pathname.startsWith("/onboarding") ||
-    pathname.startsWith("/dashboard");
+  // Show the marketing navbar only on the landing page (home route)
+  const showMarketingNavbar = pathname === "/";
 
-  if (hideNavbar) return null;
+  if (!showMarketingNavbar) return null;
 
   return <Navbar />;
 }

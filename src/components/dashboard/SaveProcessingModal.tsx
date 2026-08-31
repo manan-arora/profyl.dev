@@ -7,12 +7,14 @@ import { PreparationLoader } from "@/components/leetcode/LeetcodeResultPanel";
 interface SaveProcessingModalProps {
   open: boolean;
   state: "preparing" | "failed";
+  errorMessage?: string | null;
   onRetry: () => void;
 }
 
 export function SaveProcessingModal({
   open,
   state,
+  errorMessage,
   onRetry,
 }: SaveProcessingModalProps) {
   return (
@@ -27,36 +29,20 @@ export function SaveProcessingModal({
           <PreparationLoader />
         ) : (
           <div className="text-center font-sans text-white">
-            {/* Circular checkmark container with Amber warning badge */}
-            <div className="relative mx-auto size-20 w-20 h-20 shrink-0">
-              <svg viewBox="0 0 64 64" className="size-20 w-20 h-20 -rotate-90 block" aria-hidden="true">
-                <circle cx="32" cy="32" r="28" className="stroke-white/10" strokeWidth="1.5" fill="none" />
-                <circle
-                  cx="32"
-                  cy="32"
-                  r="28"
-                  className="animate-ring-draw"
-                  stroke="#c7ff41"
-                  strokeWidth="1.5"
-                  fill="none"
-                  strokeLinecap="square"
-                />
+            {/* Warning triangle icon */}
+            <div className="relative mx-auto size-20 w-20 h-20 shrink-0 flex items-center justify-center animate-warn-in">
+              <svg
+                viewBox="0 0 24 24"
+                className="size-20 w-20 h-20 text-amber-500/80 stroke-current fill-amber-500/5"
+                strokeWidth="1.0"
+                strokeLinecap="square"
+                strokeLinejoin="miter"
+                aria-hidden="true"
+              >
+                <path d="M12 3 L22 20 H2 Z" />
+                <line x1="12" y1="8" x2="12" y2="13" strokeWidth="1.0" />
+                <line x1="12" y1="16.5" x2="12" y2="16.5" strokeWidth="1.0" />
               </svg>
-              <svg viewBox="0 0 64 64" className="absolute inset-0 size-20 w-20 h-20 block" aria-hidden="true">
-                <path
-                  d="M21 33.5L28.5 41L43 25"
-                  className="animate-check-draw"
-                  stroke="#c7ff41"
-                  strokeWidth="2"
-                  fill="none"
-                  strokeLinecap="square"
-                  strokeLinejoin="miter"
-                />
-              </svg>
-
-              <span className="absolute -bottom-0.5 -right-0.5 flex size-6 items-center justify-center border border-amber-400/40 bg-[#0D0D0D] animate-warn-in">
-                <span className="font-mono text-[11px] leading-none text-amber-400">!</span>
-              </span>
             </div>
 
             {/* Heading */}
@@ -66,7 +52,7 @@ export function SaveProcessingModal({
 
             {/* Error Message */}
             <p className="mt-3 text-[14px] leading-relaxed text-white/60 animate-rise-in">
-              Your edits were saved, but we couldn't finish preparing your Profyl. Please check your connections and try again.
+              {errorMessage || "Your edits were saved, but we couldn't finish preparing your Profyl. Please check your connections and try again."}
             </p>
 
             {/* Retry Button */}

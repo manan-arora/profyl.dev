@@ -1,15 +1,92 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { Show, UserButton } from "@clerk/nextjs";
+import { Show } from "@clerk/nextjs";
+import { useState, useEffect } from "react";
 
 const NAV = [
   { label: "Product", href: "#" },
-  { label: "Signals", href: "#" },
-  { label: "Insights", href: "#" },
-  { label: "Manifesto", href: "#" },
+  { label: "How It Works", href: "#how-it-works" },
+  { label: "Why Profyl", href: "#why-profyl" },
+  { label: "Manifesto", href: "#manifesto" },
 ];
 
+const getTargetId = (href: string) =>
+  href === "#" ? "product" : href.replace("#", "");
+
+const getInitialActiveId = () => {
+  if (typeof window === "undefined") return "product";
+
+  const hashId = window.location.hash.replace("#", "");
+  if (hashId && NAV.some((item) => getTargetId(item.href) === hashId)) {
+    return hashId;
+  }
+
+  return "product";
+};
+
 export function Navbar() {
+  const [activeId, setActiveId] = useState<string>(getInitialActiveId);
+
+  useEffect(() => {
+    const observerOptions = {
+      root: null,
+      rootMargin: "-30% 0px -60% 0px",
+      threshold: 0,
+    };
+
+    const handleIntersection = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActiveId(entry.target.id);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(
+      handleIntersection,
+      observerOptions,
+    );
+
+    NAV.forEach((item) => {
+      const targetId = getTargetId(item.href);
+      const el = document.getElementById(targetId);
+      if (el) observer.observe(el);
+    });
+
+    return () => {
+      NAV.forEach((item) => {
+        const targetId = getTargetId(item.href);
+        const el = document.getElementById(targetId);
+        if (el) observer.unobserve(el);
+      });
+    };
+  }, []);
+
+  const handleNavClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    id: string,
+  ) => {
+    e.preventDefault();
+    setActiveId(id);
+    const targetEl = document.getElementById(id);
+    if (targetEl) {
+      const offset = 80; // offset for the sticky navbar height
+      const bodyRect = document.body.getBoundingClientRect().top;
+      const elementRect = targetEl.getBoundingClientRect().top;
+      const elementPosition = elementRect - bodyRect;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+    }
+    // Update hash in URL
+    window.history.pushState(null, "", id === "product" ? "/" : `#${id}`);
+  };
+
   return (
     <header className="fixed top-0 inset-x-0 z-50 border-b hairline bg-[#0D0D0D]/80 backdrop-blur-md">
       <div className="mx-auto max-w-[1400px] px-6 lg:px-10 h-16 flex items-center justify-between">
@@ -24,7 +101,7 @@ export function Navbar() {
             className="size-7 object-contain"
           />
 
-          <span className="font-display font-semibold tracking-tight text-lg">
+          <span className="font-display font-semibold tracking-tight text-lg text-white">
             profyl
           </span>
 
@@ -35,15 +112,28 @@ export function Navbar() {
 
         {/* Center Navigation */}
         <nav className="hidden md:flex items-center gap-8">
-          {NAV.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="text-sm text-white/70 hover:text-white transition-colors"
-            >
-              {item.label}
-            </Link>
-          ))}
+          {NAV.map((item) => {
+            const targetId =
+              item.href === "#" ? "product" : item.href.replace("#", "");
+            const isActive = activeId === targetId;
+            return (
+              <a
+                key={item.label}
+                href={item.href}
+                onClick={(e) => handleNavClick(e, targetId)}
+                className={`text-sm transition-all duration-200 relative py-1 ${
+                  isActive
+                    ? "text-neon neon-text-glow font-medium"
+                    : "text-white/70 hover:text-white"
+                }`}
+              >
+                {item.label}
+                {isActive && (
+                  <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-neon rounded-full transition-all duration-300" />
+                )}
+              </a>
+            );
+          })}
         </nav>
 
         {/* Right Actions */}
@@ -65,7 +155,12 @@ export function Navbar() {
           </Show>
 
           <Show when="signed-in">
-            <UserButton />
+            <Link
+              href="/dashboard"
+              className="bg-neon text-[#0D0D0D] text-sm font-semibold px-4 py-2 hover:opacity-90 transition"
+            >
+              Dashboard →
+            </Link>
           </Show>
         </div>
       </div>

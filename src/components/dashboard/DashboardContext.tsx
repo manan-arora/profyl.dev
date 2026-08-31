@@ -124,6 +124,7 @@ interface DashboardCtx {
   discardEdits: () => void;
   getLastActiveTab: () => string;
   refreshState: RefreshState;
+  refreshError: string | null;
   retryRefresh: () => Promise<void>;
 }
 
@@ -182,7 +183,9 @@ export function DashboardProvider({
   const [processingState, setProcessingState] = useState<
     "preparing" | "failed"
   >("preparing");
+  const [processingError, setProcessingError] = useState<string | null>(null);
   const [refreshState, setRefreshState] = useState<RefreshState>("idle");
+  const [refreshError, setRefreshError] = useState<string | null>(null);
   const isRefreshingRef = useRef(false);
 
   // 2. Unsaved Edits State
@@ -328,6 +331,7 @@ export function DashboardProvider({
     if (isRefreshingRef.current) return;
     isRefreshingRef.current = true;
     setRefreshState("refreshing");
+    setRefreshError(null);
 
     try {
       const response = await checkDashboardFreshnessAction();
@@ -404,6 +408,9 @@ export function DashboardProvider({
     } catch (error: any) {
       console.error("Dashboard freshness check failed:", error);
       setRefreshState("failed");
+      if (error.message?.includes("GitHub access needs to be reconnected")) {
+        setRefreshError(error.message);
+      }
     } finally {
       isRefreshingRef.current = false;
     }
@@ -458,6 +465,7 @@ export function DashboardProvider({
   // Real saveChanges - calls Server Action and synchronizes client state
   const saveChanges = async () => {
     setSaveStatus("saving");
+    setProcessingError(null);
 
     const projectsChanged =
       JSON.stringify(localProjects) !== JSON.stringify(initialProjects);
@@ -503,6 +511,7 @@ export function DashboardProvider({
 
       if (projectsChanged && response.derivedDataFailed) {
         setProcessingState("failed");
+        setProcessingError(response.pipelineError || null);
         setSaveStatus("idle");
         toast.warning(
           "Changes saved, but analytics generation failed. Please try again.",
@@ -524,6 +533,7 @@ export function DashboardProvider({
 
   const handleRetry = async () => {
     setProcessingState("preparing");
+    setProcessingError(null);
 
     try {
       const response = await retryDerivedDataPipelineAction();
@@ -533,6 +543,9 @@ export function DashboardProvider({
           response.error || "Failed to retry derived data generation.",
         );
         setProcessingState("failed");
+        if (response.error?.includes("GitHub access needs to be reconnected")) {
+          setProcessingError(response.error);
+        }
         return;
       }
 
@@ -557,6 +570,9 @@ export function DashboardProvider({
         error.message || "An unexpected error occurred during retry.",
       );
       setProcessingState("failed");
+      if (error.message?.includes("GitHub access needs to be reconnected")) {
+        setProcessingError(error.message);
+      }
     }
   };
 
@@ -579,6 +595,7 @@ export function DashboardProvider({
         discardEdits,
         getLastActiveTab,
         refreshState,
+        refreshError,
         retryRefresh: checkFreshness,
       }}
     >
@@ -586,6 +603,7 @@ export function DashboardProvider({
       <SaveProcessingModal
         open={isProcessingOpen}
         state={processingState}
+        errorMessage={processingError}
         onRetry={handleRetry}
       />
     </DashboardContext.Provider>

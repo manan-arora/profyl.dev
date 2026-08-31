@@ -9,6 +9,7 @@ import {
   runDerivedDataPipeline,
   ensureProfileDataFresh,
 } from "@/lib/services/freshness.service";
+import { GitHubAuthError } from "@/lib/errors/GitHubAuthError";
 
 const SAFE_SAVE_ERROR = "Couldn't save your changes. Please try again.";
 
@@ -246,7 +247,13 @@ export async function saveChangesAction(payload: {
           error,
         );
         derivedDataFailed = true;
-        pipelineError = SAFE_SAVE_ERROR;
+
+        // Provide user-friendly message for GitHub auth failures
+        if (error instanceof GitHubAuthError) {
+          pipelineError = error.userMessage;
+        } else {
+          pipelineError = SAFE_SAVE_ERROR;
+        }
       }
     }
 
@@ -320,6 +327,15 @@ export async function retryDerivedDataPipelineAction() {
     };
   } catch (error: any) {
     console.error("Retry pipeline execution failed:", error);
+
+    // Provide user-friendly message for GitHub auth failures
+    if (error instanceof GitHubAuthError) {
+      return {
+        success: false,
+        error: error.userMessage,
+      };
+    }
+
     return {
       success: false,
       error: error.message || "An unexpected error occurred during retry.",
@@ -363,6 +379,12 @@ export async function checkDashboardFreshnessAction() {
     };
   } catch (error: any) {
     console.error("Dashboard freshness check failed:", error);
+    if (error instanceof GitHubAuthError) {
+      return {
+        success: false,
+        error: error.userMessage,
+      };
+    }
     return {
       success: false,
       error:

@@ -7,43 +7,50 @@ export async function handleUserUpdated(data: UserJSON) {
   // Extract primary email
   const primaryEmailId = data.primary_email_address_id;
   const emailObj = data.email_addresses.find((e) => e.id === primaryEmailId);
-  const email = emailObj?.email_address || data.email_addresses[0]?.email_address;
+  const email =
+    emailObj?.email_address || data.email_addresses[0]?.email_address;
 
   if (!email) {
-    throw new Error(`[Clerk Webhook] Missing email address for update of user: ${clerkId}`);
+    throw new Error(
+      `[Clerk Webhook] Missing email address for update of user: ${clerkId}`,
+    );
   }
 
   // Extract name and avatar URL
-  const name = `${data.first_name || ""} ${data.last_name || ""}`.trim() || null;
+  const name =
+    `${data.first_name || ""} ${data.last_name || ""}`.trim() || null;
   const avatarUrl = data.image_url || null;
 
-  console.log(`[Clerk Webhook] Updating user: ${clerkId} (New Email: ${email})`);
+  console.log(
+    `[Clerk Webhook] Updating user: ${clerkId} (New Email: ${email})`,
+  );
 
   // Extract GitHub OAuth identity details from external_accounts
   const githubAccount = data.external_accounts.find(
-    (acc) => acc.provider === "oauth_github"
+    (acc) => acc.provider === "oauth_github",
   );
 
-  if (!githubAccount) {
-    throw new Error(`[Clerk Webhook] No GitHub account linked for user: ${clerkId}`);
+  // Update identity fields managed by Clerk/GitHub.
+  // Do NOT modify application-owned fields (e.g. slug, profileStatus, scores, AI summaries).
+  // If no GitHub account, it's valid — user may have disconnected temporarily.
+  // Do not fail the webhook; just skip GitHub field updates.
+
+  const updateData: any = {
+    email,
+    name,
+    avatarUrl,
+  };
+
+  // Only update GitHub fields if a GitHub account exists
+  if (githubAccount) {
+    const githubUsername = githubAccount.username || data.username;
+    if (githubUsername) {
+      updateData.githubUsername = githubUsername;
+    }
   }
 
-  const githubUsername = githubAccount.username || data.username;
-
-  if (!githubUsername) {
-    throw new Error(`[Clerk Webhook] Missing GitHub account details for user: ${clerkId}`);
-  }
-
-
-// Update identity fields managed by Clerk/GitHub.
-// Do NOT modify application-owned fields (e.g. slug, profileStatus, scores, AI summaries).
   await prisma.user.updateMany({
     where: { clerkId },
-    data: {
-      email,
-      name,
-      avatarUrl,
-      githubUsername,
-    }
+    data: updateData,
   });
 }

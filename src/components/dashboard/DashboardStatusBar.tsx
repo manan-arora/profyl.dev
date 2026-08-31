@@ -4,7 +4,7 @@ import { useDashboard } from "./DashboardContext";
 import { Loader2, AlertCircle } from "lucide-react";
 
 export default function DashboardStatusBar() {
-  const { refreshState, retryRefresh } = useDashboard();
+  const { refreshState, retryRefresh, refreshError } = useDashboard();
 
   if (refreshState === "idle") return null;
 
@@ -27,7 +27,7 @@ export default function DashboardStatusBar() {
         ) : (
           <>
             <AlertCircle className="h-3.5 w-3.5 shrink-0 text-red-500" />
-            <span>Couldn't update your profile data.</span>
+            <span>{refreshError || "Couldn't update your profile data."}</span>
             <button
               onClick={retryRefresh}
               className="underline hover:text-white cursor-pointer ml-auto bg-transparent border-none p-0 font-mono text-xs font-semibold text-red-500"

@@ -7,6 +7,7 @@ import {
   GithubRepositoryTree,
   GithubFileContentResponse,
 } from "@/types/github";
+import { GitHubAuthError } from "@/lib/errors/GitHubAuthError";
 
 const GITHUB_API_BASE_URL = "https://api.github.com";
 const GITHUB_GRAPHQL_URL = "https://api.github.com/graphql";
@@ -33,10 +34,7 @@ query {
 }
 `;
 
-async function request<T>(
-  endpoint: string,
-  accessToken: string
-): Promise<T> {
+async function request<T>(endpoint: string, accessToken: string): Promise<T> {
   const url = `${GITHUB_API_BASE_URL}${endpoint}`;
 
   const response = await fetch(url, {
@@ -48,8 +46,17 @@ async function request<T>(
   });
 
   if (!response.ok) {
+    // Treat 401 as authentication failure
+    if (response.status === 401) {
+      throw new GitHubAuthError(
+        `GitHub API returned ${response.status} ${response.statusText}`,
+        "Your GitHub access needs to be reconnected. Please sign out and sign in with GitHub again.",
+      );
+    }
+
+    // All other errors (403, 404, 500, etc.) are returned as generic errors
     throw new Error(
-      `GitHub API request failed with status: ${response.status} ${response.statusText}`
+      `GitHub API request failed with status: ${response.status} ${response.statusText}`,
     );
   }
 
@@ -57,22 +64,22 @@ async function request<T>(
 }
 
 export async function getGithubProfile(
-  accessToken: string
+  accessToken: string,
 ): Promise<GithubProfile> {
   return request<GithubProfile>("/user", accessToken);
 }
 
 export async function getGithubRepositories(
-  accessToken: string
+  accessToken: string,
 ): Promise<GithubRepository[]> {
   return request<GithubRepository[]>(
     "/user/repos?per_page=100&sort=updated&direction=desc",
-    accessToken
+    accessToken,
   );
 }
 
 export async function getGithubContributions(
-  accessToken: string
+  accessToken: string,
 ): Promise<GithubContributionsData> {
   const response = await fetch(GITHUB_GRAPHQL_URL, {
     method: "POST",
@@ -86,7 +93,7 @@ export async function getGithubContributions(
 
   if (!response.ok) {
     throw new Error(
-      `GitHub GraphQL API request failed with status: ${response.status} ${response.statusText}`
+      `GitHub GraphQL API request failed with status: ${response.status} ${response.statusText}`,
     );
   }
 
@@ -107,21 +114,19 @@ export async function getGithubContributions(
 
 export async function getGithubMergedPRCount(
   accessToken: string,
-  username: string
+  username: string,
 ): Promise<number> {
   const endpoint = `/search/issues?q=${encodeURIComponent(
-    `is:pr is:merged author:${username}`
+    `is:pr is:merged author:${username}`,
   )}`;
 
   const response = await request<GithubSearchIssuesResponse>(
     endpoint,
-    accessToken
+    accessToken,
   );
 
   if (!response || typeof response.total_count !== "number") {
-    throw new Error(
-      "GitHub Search API response missing total_count field"
-    );
+    throw new Error("GitHub Search API response missing total_count field");
   }
 
   return response.total_count;
@@ -130,7 +135,7 @@ export async function getGithubMergedPRCount(
 export async function getGithubRepositoryLanguages(
   accessToken: string,
   owner: string,
-  repo: string
+  repo: string,
 ): Promise<Record<string, number>> {
   const endpoint = `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/languages`;
   const response = await request<Record<string, number>>(endpoint, accessToken);
@@ -146,18 +151,18 @@ export async function getGithubRepositoryTree(
   accessToken: string,
   owner: string,
   repo: string,
-  branch: string
+  branch: string,
 ): Promise<GithubRepositoryTree> {
   const endpoint = `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(
-    repo
+    repo,
   )}/git/trees/${encodeURIComponent(branch)}?recursive=1`;
-  
+
   const response = await request<GithubRepositoryTree>(endpoint, accessToken);
-  
+
   if (!response || !Array.isArray(response.tree)) {
     throw new Error("GitHub Git Trees API response missing tree or malformed");
   }
-  
+
   return response;
 }
 
@@ -166,31 +171,36 @@ export async function getGithubFileContent(
   owner: string,
   repo: string,
   path: string,
-  branch: string
+  branch: string,
 ): Promise<string> {
   const encodedPath = path
     .split("/")
     .map((segment) => encodeURIComponent(segment))
     .join("/");
   const endpoint = `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(
-    repo
+    repo,
   )}/contents/${encodedPath}?ref=${encodeURIComponent(branch)}`;
 
-  const response = await request<GithubFileContentResponse | GithubFileContentResponse[]>(
-    endpoint,
-    accessToken
-  );
+  const response = await request<
+    GithubFileContentResponse | GithubFileContentResponse[]
+  >(endpoint, accessToken);
 
   if (Array.isArray(response) || !response || typeof response !== "object") {
-    throw new Error(`GitHub contents API returned non-file response for path: ${path}`);
+    throw new Error(
+      `GitHub contents API returned non-file response for path: ${path}`,
+    );
   }
 
   if (response.type !== "file") {
-    throw new Error(`GitHub contents API path is not a file: ${path} (type: ${response.type})`);
+    throw new Error(
+      `GitHub contents API path is not a file: ${path} (type: ${response.type})`,
+    );
   }
 
   if (typeof response.content !== "string") {
-    throw new Error(`GitHub contents API response missing content for path: ${path}`);
+    throw new Error(
+      `GitHub contents API response missing content for path: ${path}`,
+    );
   }
 
   if (response.encoding === "base64") {
@@ -203,26 +213,26 @@ export async function getGithubFileContent(
 export async function getGithubReadme(
   accessToken: string,
   owner: string,
-  repo: string
+  repo: string,
 ): Promise<string> {
   const endpoint = `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(
-    repo
+    repo,
   )}/readme`;
 
   const response = await request<GithubFileContentResponse>(
     endpoint,
-    accessToken
+    accessToken,
   );
 
   if (Array.isArray(response) || !response || typeof response !== "object") {
     throw new Error(
-      `GitHub readme API returned non-file response for repo: ${owner}/${repo}`
+      `GitHub readme API returned non-file response for repo: ${owner}/${repo}`,
     );
   }
 
   if (typeof response.content !== "string") {
     throw new Error(
-      `GitHub readme API response missing content for repo: ${owner}/${repo}`
+      `GitHub readme API response missing content for repo: ${owner}/${repo}`,
     );
   }
 
@@ -232,4 +242,3 @@ export async function getGithubReadme(
 
   return response.content;
 }
-

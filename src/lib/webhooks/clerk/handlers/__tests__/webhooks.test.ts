@@ -22,9 +22,7 @@ describe("Clerk Webhooks Handlers", () => {
       const mockCreatedData = {
         id: "clerk_123",
         primary_email_address_id: "email_1",
-        email_addresses: [
-          { id: "email_1", email_address: "test@example.com" },
-        ],
+        email_addresses: [{ id: "email_1", email_address: "test@example.com" }],
         external_accounts: [
           {
             provider: "oauth_github",
@@ -69,9 +67,7 @@ describe("Clerk Webhooks Handlers", () => {
       const mockCreatedData = {
         id: "clerk_123",
         primary_email_address_id: "email_1",
-        email_addresses: [
-          { id: "email_1", email_address: "test@example.com" },
-        ],
+        email_addresses: [{ id: "email_1", email_address: "test@example.com" }],
         external_accounts: [
           {
             provider: "oauth_github",
@@ -94,7 +90,7 @@ describe("Clerk Webhooks Handlers", () => {
             name: "Doe",
             avatarUrl: null,
           }),
-        })
+        }),
       );
     });
   });
@@ -131,6 +127,74 @@ describe("Clerk Webhooks Handlers", () => {
           name: "Jane Smith",
           avatarUrl: "https://example.com/avatar_updated.jpg",
           githubUsername: "gh_user_updated",
+        },
+      });
+    });
+
+    it("should succeed and skip GitHub fields when no GitHub external account exists", async () => {
+      const mockUpdatedData = {
+        id: "clerk_123",
+        primary_email_address_id: "email_1",
+        email_addresses: [
+          { id: "email_1", email_address: "updated@example.com" },
+        ],
+        external_accounts: [
+          // No GitHub OAuth account
+        ],
+        first_name: "Jane",
+        last_name: "Smith",
+        image_url: "https://example.com/avatar_updated.jpg",
+      } as any;
+
+      vi.mocked(prisma.user.updateMany).mockResolvedValue({} as any);
+
+      // Should NOT throw an error
+      await handleUserUpdated(mockUpdatedData);
+
+      expect(prisma.user.updateMany).toHaveBeenCalledTimes(1);
+      // Should update email, name, avatarUrl but NOT githubUsername
+      expect(prisma.user.updateMany).toHaveBeenCalledWith({
+        where: { clerkId: "clerk_123" },
+        data: {
+          email: "updated@example.com",
+          name: "Jane Smith",
+          avatarUrl: "https://example.com/avatar_updated.jpg",
+        },
+      });
+    });
+
+    it("should update GitHub fields when GitHub account exists again after disconnection", async () => {
+      const mockUpdatedData = {
+        id: "clerk_123",
+        primary_email_address_id: "email_1",
+        email_addresses: [
+          { id: "email_1", email_address: "updated@example.com" },
+        ],
+        external_accounts: [
+          {
+            provider: "oauth_github",
+            provider_user_id: "gh_123",
+            username: "gh_user_reconnected",
+          },
+        ],
+        first_name: "Jane",
+        last_name: "Smith",
+        image_url: "https://example.com/avatar_updated.jpg",
+      } as any;
+
+      vi.mocked(prisma.user.updateMany).mockResolvedValue({} as any);
+
+      await handleUserUpdated(mockUpdatedData);
+
+      expect(prisma.user.updateMany).toHaveBeenCalledTimes(1);
+      // Should include githubUsername when account exists
+      expect(prisma.user.updateMany).toHaveBeenCalledWith({
+        where: { clerkId: "clerk_123" },
+        data: {
+          email: "updated@example.com",
+          name: "Jane Smith",
+          avatarUrl: "https://example.com/avatar_updated.jpg",
+          githubUsername: "gh_user_reconnected",
         },
       });
     });

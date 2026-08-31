@@ -3,6 +3,7 @@ import { githubService } from "../github.service";
 import * as oauth from "@/lib/auth/oauth";
 import * as githubClient from "@/lib/github/client";
 import { prisma } from "@/lib/prisma";
+import { GitHubAuthError } from "@/lib/errors/GitHubAuthError";
 
 vi.mock("@/lib/auth/oauth", () => ({
   getGithubAccessToken: vi.fn(),
@@ -151,7 +152,9 @@ describe("githubService.syncGithub", () => {
 
   it("should complete sync successfully even if getGithubReadme fails (swallows error)", async () => {
     vi.mocked(oauth.getGithubAccessToken).mockResolvedValue("mock-token");
-    vi.mocked(githubClient.getGithubReadme).mockRejectedValue(new Error("GitHub API Error 404"));
+    vi.mocked(githubClient.getGithubReadme).mockRejectedValue(
+      new Error("GitHub API Error 404"),
+    );
     vi.mocked(prisma.profile.findUnique).mockResolvedValue(null);
 
     vi.mocked(githubClient.getGithubProfile).mockResolvedValue({
@@ -226,7 +229,7 @@ describe("githubService.syncGithub", () => {
   it("should not overwrite Profile.name if it is already populated", async () => {
     vi.mocked(oauth.getGithubAccessToken).mockResolvedValue("mock-token");
     vi.mocked(githubClient.getGithubReadme).mockResolvedValue("## Mock README");
-    
+
     // Profile already has a name
     vi.mocked(prisma.profile.findUnique).mockResolvedValue({
       id: "profile_123",
@@ -269,5 +272,54 @@ describe("githubService.syncGithub", () => {
     // Profile.update should not be called to overwrite the name
     expect(prisma.profile.update).not.toHaveBeenCalled();
     expect(prisma.profile.create).not.toHaveBeenCalled();
+  });
+
+  it("should throw GitHubAuthError when Clerk has no GitHub OAuth token", async () => {
+    vi.mocked(oauth.getGithubAccessToken).mockRejectedValue(
+      new GitHubAuthError("No GitHub OAuth access token found for user"),
+    );
+
+    await expect(githubService.syncGithub("user_123")).rejects.toThrow(
+      GitHubAuthError,
+    );
+    const error = new GitHubAuthError("test");
+    expect(error).toBeInstanceOf(GitHubAuthError);
+  });
+
+  it("should throw GitHubAuthError when GitHub API returns 401 Unauthorized", async () => {
+    vi.mocked(oauth.getGithubAccessToken).mockResolvedValue("mock-token");
+    vi.mocked(githubClient.getGithubProfile).mockRejectedValue(
+      new GitHubAuthError("GitHub API returned 401 Unauthorized"),
+    );
+
+    await expect(githubService.syncGithub("user_123")).rejects.toThrow(
+      GitHubAuthError,
+    );
+  });
+
+  it("should throw generic Error when GitHub API returns 403 Forbidden", async () => {
+    vi.mocked(oauth.getGithubAccessToken).mockResolvedValue("mock-token");
+    vi.mocked(githubClient.getGithubProfile).mockRejectedValue(
+      new Error("GitHub API request failed with status: 403 Forbidden"),
+    );
+
+    // Should throw Error, not GitHubAuthError
+    const error = await githubService.syncGithub("user_123").catch((e) => e);
+    expect(error).toBeInstanceOf(Error);
+    expect(error).not.toBeInstanceOf(GitHubAuthError);
+  });
+
+  it("should throw generic Error when GitHub API returns 500 Server Error", async () => {
+    vi.mocked(oauth.getGithubAccessToken).mockResolvedValue("mock-token");
+    vi.mocked(githubClient.getGithubProfile).mockRejectedValue(
+      new Error(
+        "GitHub API request failed with status: 500 Internal Server Error",
+      ),
+    );
+
+    // Should throw Error, not GitHubAuthError
+    const error = await githubService.syncGithub("user_123").catch((e) => e);
+    expect(error).toBeInstanceOf(Error);
+    expect(error).not.toBeInstanceOf(GitHubAuthError);
   });
 });
