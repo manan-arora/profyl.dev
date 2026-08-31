@@ -7,6 +7,7 @@ import { Navbar } from "@/components/Navbar";
 import { shadcn } from "@clerk/ui/themes";
 import NavbarWrapper from "@/components/NavbarWrapper";
 import { Toaster } from "@/components/ui/sonner";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -61,6 +62,7 @@ export default function RootLayout({
           <NavbarWrapper />
           {children}
           <Toaster />
+          <Analytics />
         </ClerkProvider>
       </body>
     </html>
