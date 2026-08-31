@@ -22,17 +22,17 @@ export function SectionHeader({
   subtitle?: string;
 }) {
   return (
-    <div className="grid lg:grid-cols-[1fr_2fr] gap-8 items-end">
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6 lg:gap-8 items-start lg:items-end">
       <div>
         <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-neon mb-4">
           {tag}
         </div>
-        <h2 className="font-display font-semibold tracking-tight text-4xl lg:text-5xl leading-[0.95] text-white">
+        <h2 className="font-display font-semibold tracking-tight text-3xl sm:text-4xl lg:text-5xl leading-[0.95] text-white">
           {title}
         </h2>
       </div>
       {subtitle && (
-        <p className="text-white/60 text-lg leading-relaxed max-w-md">
+        <p className="text-white/60 text-base sm:text-lg leading-relaxed max-w-xl lg:pt-0 pt-2">
           {subtitle}
         </p>
       )}
@@ -67,9 +67,9 @@ export function ProfylAISummary({ data }: { data: ProfylPageData }) {
         <SectionHeader tag="◇ PROFYL SYNTHESIS" title="What the signals reveal" />
         <div className="relative mt-10">
           <CornerMarkers />
-          <div className="relative bg-[#141414] border hairline p-8 lg:p-12">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b hairline">
-              <div className="flex items-center gap-3">
+          <div className="relative bg-[#141414] border hairline p-6 sm:p-8 lg:p-12">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b hairline">
+              <div className="flex flex-wrap items-center gap-3">
                 <span className="font-mono text-[10px] uppercase tracking-widest text-neon">
                   ◇ Profyl AI
                 </span>
@@ -81,7 +81,7 @@ export function ProfylAISummary({ data }: { data: ProfylPageData }) {
 
             {/* AI Summary Paragraph */}
             {data.ai.summary && (
-              <p className="font-display text-2xl lg:text-3xl font-medium tracking-tight leading-snug text-white/90 max-w-5xl">
+              <p className="font-display text-xl sm:text-2xl lg:text-3xl font-medium tracking-tight leading-snug text-white/90 max-w-5xl">
                 {renderHighlightedSummary(data.ai.summary)}
               </p>
             )}
@@ -98,7 +98,7 @@ export function ProfylAISummary({ data }: { data: ProfylPageData }) {
                     className="flex items-start gap-2.5 text-white/70 font-mono text-sm leading-relaxed"
                   >
                     <span className="text-neon mt-1">◇</span>
-                    <span>{item}</span>
+                    <span className="break-words w-full">{item}</span>
                   </div>
                 ))}
               </div>
@@ -110,7 +110,7 @@ export function ProfylAISummary({ data }: { data: ProfylPageData }) {
                 {data.ai.strengthChips.map((chip) => (
                   <span
                     key={chip}
-                    className="font-mono text-[10px] px-2 py-1 border-neon border text-neon uppercase tracking-wide"
+                    className="font-mono text-[10px] px-2 py-1 border-neon border text-neon uppercase tracking-wide bg-[#0D0D0D]"
                   >
                     {chip}
                   </span>

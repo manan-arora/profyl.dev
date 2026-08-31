@@ -22,7 +22,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       <div className="bg-[#141414] border hairline px-3 py-2 font-mono text-xs select-none">
         <div className="text-white/40 mb-1 uppercase tracking-wider">{label}</div>
         <div className="text-neon font-semibold">
-          {payload[0].value.toLocaleString()} contributions
+          {payload[0].value.toLocaleString("en-US")} contributions
         </div>
       </div>
     );
@@ -39,7 +39,7 @@ export function ProfylGithubAnalytics({ data }: { data: ProfylPageData }) {
       label: "OSS PRs Merged",
     },
     {
-      value: github.starsEarned !== null ? github.starsEarned.toLocaleString() : "—",
+      value: github.starsEarned !== null ? github.starsEarned.toLocaleString("en-US") : "—",
       label: "Stars Earned",
     },
     {
@@ -66,7 +66,7 @@ export function ProfylGithubAnalytics({ data }: { data: ProfylPageData }) {
         />
 
         {/* Heatmap + Stats Row */}
-        <div className="mt-10 grid lg:grid-cols-[2fr_1fr] gap-px bg-white/8 border hairline">
+        <div className="mt-10 grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-px bg-white/8 border hairline">
           {/* Contribution Heatmap */}
           <div className="bg-[#141414] p-6 lg:p-8">
             <div className="flex items-center justify-between mb-6">
@@ -75,38 +75,40 @@ export function ProfylGithubAnalytics({ data }: { data: ProfylPageData }) {
               </span>
               {github.totalContributionsLast12Months !== null && (
                 <span className="font-mono text-[10px] text-neon uppercase tracking-wider">
-                  {github.totalContributionsLast12Months.toLocaleString()} contributions
+                  {github.totalContributionsLast12Months.toLocaleString("en-US")} contributions
                 </span>
               )}
             </div>
 
             {daysInGrid.length > 0 ? (
-              <div
-                className="grid gap-[3px] select-none"
-                style={{
-                  gridTemplateColumns: `repeat(${weeks.length || 52}, minmax(0, 1fr))`,
-                  gridAutoFlow: "column",
-                  gridTemplateRows: "repeat(7, minmax(0, 1fr))",
-                }}
-              >
-                {daysInGrid.map((day: any, i: number) => {
-                  let bg = "rgba(255, 255, 255, 0.05)";
-                  if (day.count > 0) {
-                    const lvl = day.level || "";
-                    if (lvl === "FOURTH_QUARTILE" || lvl === "HIGHER") bg = "#C7FF41";
-                    else if (lvl === "THIRD_QUARTILE") bg = "rgba(199, 255, 65, 0.6)";
-                    else if (lvl === "SECOND_QUARTILE") bg = "rgba(199, 255, 65, 0.28)";
-                    else bg = "rgba(199, 255, 65, 0.12)";
-                  }
-                  return (
-                    <span
-                      key={i}
-                      className="aspect-square rounded-[1px] hover:ring-1 hover:ring-neon transition-shadow"
-                      style={{ background: bg }}
-                      title={`${day.count} contributions on ${day.date}`}
-                    />
-                  );
-                })}
+              <div className="w-full overflow-x-auto custom-scrollbar pb-2">
+                <div
+                  className="grid gap-[3px] select-none min-w-[680px]"
+                  style={{
+                    gridTemplateColumns: `repeat(${weeks.length || 52}, minmax(0, 1fr))`,
+                    gridAutoFlow: "column",
+                    gridTemplateRows: "repeat(7, minmax(0, 1fr))",
+                  }}
+                >
+                  {daysInGrid.map((day: any, i: number) => {
+                    let bg = "rgba(255, 255, 255, 0.05)";
+                    if (day.count > 0) {
+                      const lvl = day.level || "";
+                      if (lvl === "FOURTH_QUARTILE" || lvl === "HIGHER") bg = "#C7FF41";
+                      else if (lvl === "THIRD_QUARTILE") bg = "rgba(199, 255, 65, 0.6)";
+                      else if (lvl === "SECOND_QUARTILE") bg = "rgba(199, 255, 65, 0.28)";
+                      else bg = "rgba(199, 255, 65, 0.12)";
+                    }
+                    return (
+                      <span
+                        key={i}
+                        className="aspect-square rounded-[1px] hover:ring-1 hover:ring-neon transition-shadow"
+                        style={{ background: bg }}
+                        title={`${day.count} contributions on ${day.date}`}
+                      />
+                    );
+                  })}
+                </div>
               </div>
             ) : (
               <div className="py-8 text-center font-mono text-xs text-white/40">
@@ -114,7 +116,7 @@ export function ProfylGithubAnalytics({ data }: { data: ProfylPageData }) {
               </div>
             )}
 
-            <div className="mt-4 flex justify-between font-mono text-[9px] text-white/40 uppercase tracking-widest px-1">
+            <div className="mt-4 flex justify-between font-mono text-[9px] text-white/40 uppercase tracking-widest px-1 overflow-x-auto custom-scrollbar whitespace-nowrap gap-4">
               <span>Jan</span>
               <span>Apr</span>
               <span>Jul</span>
@@ -127,7 +129,7 @@ export function ProfylGithubAnalytics({ data }: { data: ProfylPageData }) {
           <div className="bg-[#141414] p-6 lg:p-8 grid grid-cols-2 gap-6 content-start">
             {stats.map((s, idx) => (
               <div key={idx}>
-                <div className="font-display text-3xl font-semibold text-white tracking-tight">
+                <div className="font-display text-2xl sm:text-3xl font-semibold text-white tracking-tight">
                   {s.value}
                 </div>
                 <div className="font-mono text-[9px] uppercase tracking-widest text-white/45 mt-1">
@@ -139,7 +141,7 @@ export function ProfylGithubAnalytics({ data }: { data: ProfylPageData }) {
         </div>
 
         {/* Charts Row */}
-        <div className="mt-px grid lg:grid-cols-2 gap-px bg-white/8">
+        <div className="mt-px grid grid-cols-1 lg:grid-cols-2 gap-px bg-white/8">
           {/* Language Distribution */}
           <div className="flex flex-col bg-[#141414] p-6 lg:p-8 border-l border-b hairline lg:border-b-0">
             <div className="font-mono text-[10px] uppercase tracking-widest text-white/55 mb-6">

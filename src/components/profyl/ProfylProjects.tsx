@@ -254,7 +254,7 @@ export function ProfylProjects({ data }: { data: ProfylPageData }) {
           subtitle="Auto-detected from GitHub. Tech stack inferred. AI summaries generated."
         />
         
-        <div className="mt-10 grid md:grid-cols-2 gap-px bg-white/8 border hairline">
+        <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-px bg-white/8 border hairline">
 
           {data.projects.map((project) => {
             const cardTargetUrl =
@@ -276,7 +276,7 @@ export function ProfylProjects({ data }: { data: ProfylPageData }) {
                   cursor-pointer
                   relative
                   flex flex-col
-                  min-h-[360px]
+                  min-h-0 md:min-h-[360px]
                   border
                   hairline
                 "
@@ -284,7 +284,7 @@ export function ProfylProjects({ data }: { data: ProfylPageData }) {
                 {/* ===================================================== */}
                 {/* PROJECT HEADER                                         */}
                 {/* ===================================================== */}
-                <div className="h-16 shrink-0">
+                <div className="min-h-0 md:h-16 pb-4 md:pb-0 shrink-0">
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
                       <div
@@ -295,6 +295,7 @@ export function ProfylProjects({ data }: { data: ProfylPageData }) {
                           tracking-tight
                           text-white
                           line-clamp-2
+                          break-words
                         "
                       >
                         {project.name}
@@ -334,14 +335,15 @@ export function ProfylProjects({ data }: { data: ProfylPageData }) {
                 {/* ===================================================== */}
                 {/* DESCRIPTION                                            */}
                 {/* ===================================================== */}
-                <div className="h-[72px] shrink-0 overflow-hidden">
+                <div className="min-h-0 md:h-[72px] pb-4 md:pb-0 shrink-0 overflow-hidden">
                   {project.description ? (
                     <p
-                      className="
+                       className="
                         text-white/65
                         leading-relaxed
                         text-sm
                         line-clamp-3
+                        break-words
                       "
                     >
                       {project.description}
@@ -356,7 +358,7 @@ export function ProfylProjects({ data }: { data: ProfylPageData }) {
                 {/* ===================================================== */}
                 {/* TOPIC CHIPS                                           */}
                 {/* ===================================================== */}
-                <div className="h-[48px] mt-3 shrink-0 overflow-hidden group-hover:text-[var(--neon)]
+                <div className="min-h-0 md:h-[48px] pb-4 md:pb-0 mt-3 shrink-0 overflow-hidden group-hover:text-[var(--neon)]
                           transition-colors">
                   <TopicChips topics={project.topics} />
                 </div>

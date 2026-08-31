@@ -29,7 +29,7 @@ export default function RepositoryList({ onEditRepo, featuredCount }: Repository
           Projects / All Repositories
         </div>
         {/* Search Input bar */}
-        <div className="relative max-w-xs w-full">
+        <div className="relative w-full sm:max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-white/35" />
           <input
             type="text"

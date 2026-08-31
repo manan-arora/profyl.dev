@@ -20,7 +20,7 @@ const ContestTooltip = ({ active, payload, label }: any) => {
       <div className="bg-[#141414] border hairline px-3 py-2 font-mono text-xs select-none">
         <div className="text-white/40 mb-1 uppercase tracking-wider">{label}</div>
         <div className="text-neon font-semibold">
-          Rating: {Math.round(payload[0].value).toLocaleString()}
+          Rating: {Math.round(payload[0].value).toLocaleString("en-US")}
         </div>
       </div>
     );
@@ -41,12 +41,12 @@ export function ProfylLeetcodeAnalytics({ data }: { data: ProfylPageData }) {
 
   const stats = [
     {
-      value: leetcode.contestRating !== null ? Math.round(leetcode.contestRating).toLocaleString() : "—",
+      value: leetcode.contestRating !== null ? Math.round(leetcode.contestRating).toLocaleString("en-US") : "—",
       label: "Rating",
       sub: "Current contest standing",
     },
     {
-      value: leetcode.overallRank !== null ? `#${leetcode.overallRank.toLocaleString()}` : "—",
+      value: leetcode.overallRank !== null ? `#${leetcode.overallRank.toLocaleString("en-US")}` : "—",
       label: "Overall Rank",
       sub: data.quantifiedSignals.leetcodePercentile !== null ?  `Top ${(
           100 - data.quantifiedSignals.leetcodePercentile
@@ -86,13 +86,13 @@ export function ProfylLeetcodeAnalytics({ data }: { data: ProfylPageData }) {
         />
 
         {/* LeetCode Stats Grid */}
-        <div className="mt-10 grid lg:grid-cols-4 gap-px bg-white/8 border hairline">
+        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/8 border hairline">
           {stats.map((s, idx) => (
             <div key={idx} className="bg-[#141414] p-6 lg:p-8">
               <div className="font-mono text-[10px] uppercase tracking-widest text-white/45 mb-2">
                 {s.label}
               </div>
-              <div className="font-display text-4xl font-semibold tracking-tight text-neon neon-text-glow">
+              <div className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-neon neon-text-glow">
                 {s.value}
               </div>
               <div className="font-mono text-[10px] text-white/40 mt-2">
@@ -103,14 +103,14 @@ export function ProfylLeetcodeAnalytics({ data }: { data: ProfylPageData }) {
         </div>
 
         {/* Charts Row */}
-        <div className="mt-px grid lg:grid-cols-2 gap-px bg-white/8 border-x border-b hairline">
+        <div className="mt-px grid grid-cols-1 lg:grid-cols-2 gap-px bg-white/8 border-x border-b hairline">
           {/* Difficulty Donut Chart */}
           <div className="bg-[#141414] p-6 lg:p-8 flex flex-col">
             <div className="font-mono text-[10px] uppercase tracking-widest text-white/55 mb-6">
               Difficulty Distribution
             </div>
 
-            <div className="flex flex-col md:flex-row gap-8 items-center justify-between w-full flex-1">
+            <div className="flex flex-col sm:flex-row gap-8 items-center justify-between w-full flex-1">
               <div className="flex-1 w-full">
                 {totalSolved > 0 ? (
                   <div className="space-y-4 max-w-xs">

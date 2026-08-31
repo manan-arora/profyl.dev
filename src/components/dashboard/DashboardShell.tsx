@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { ReactNode } from "react";
 import {
   DashboardProvider,
@@ -27,6 +28,8 @@ export default function DashboardShell({
   rawProfile,
   rawRepositories,
 }: DashboardShellProps) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   return (
     <DashboardProvider
       user={user}
@@ -36,12 +39,12 @@ export default function DashboardShell({
     >
       <div className="flex min-h-screen bg-[#0D0D0D] text-white">
         {/* Fixed Left Sidebar panel */}
-        <Sidebar />
+        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
         {/* Scrollable Main Content wrapper */}
-        <div className="pl-[240px] flex-1 flex flex-col min-w-0 min-h-screen">
+        <div className="lg:pl-[240px] flex-1 flex flex-col min-w-0 min-h-screen">
           {/* Sticky Topbar header */}
-          <Topbar />
+          <Topbar onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)} />
 
           {/* Persistent status bar for active/failed refresh notifications */}
           <DashboardStatusBar />

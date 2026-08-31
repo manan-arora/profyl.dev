@@ -28,6 +28,7 @@ const getInitialActiveId = () => {
 
 export function Navbar() {
   const [activeId, setActiveId] = useState<string>(getInitialActiveId);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     const observerOptions = {
@@ -70,6 +71,7 @@ export function Navbar() {
   ) => {
     e.preventDefault();
     setActiveId(id);
+    setIsMenuOpen(false);
     const targetEl = document.getElementById(id);
     if (targetEl) {
       const offset = 80; // offset for the sticky navbar height
@@ -138,32 +140,128 @@ export function Navbar() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-3">
-          <Show when="signed-out">
-            <Link
-              href="/sign-in"
-              className="hidden sm:block text-sm text-white/70 hover:text-white transition-colors"
-            >
-              Sign in
-            </Link>
+          <div className="hidden md:flex items-center gap-3">
+            <Show when="signed-out">
+              <Link
+                href="/sign-in"
+                className="text-sm text-white/70 hover:text-white transition-colors"
+              >
+                Sign in
+              </Link>
 
-            <Link
-              href="/sign-up"
-              className="bg-neon text-[#0D0D0D] text-sm font-semibold px-4 py-2 hover:opacity-90 transition"
-            >
-              Get Profyl →
-            </Link>
-          </Show>
+              <Link
+                href="/sign-up"
+                className="bg-neon text-[#0D0D0D] text-sm font-semibold px-4 py-2 hover:opacity-90 transition"
+              >
+                Get Profyl →
+              </Link>
+            </Show>
 
-          <Show when="signed-in">
-            <Link
-              href="/dashboard"
-              className="bg-neon text-[#0D0D0D] text-sm font-semibold px-4 py-2 hover:opacity-90 transition"
-            >
-              Dashboard →
-            </Link>
-          </Show>
+            <Show when="signed-in">
+              <Link
+                href="/dashboard"
+                className="bg-neon text-[#0D0D0D] text-sm font-semibold px-4 py-2 hover:opacity-90 transition"
+              >
+                Dashboard →
+              </Link>
+            </Show>
+          </div>
+
+          {/* Hamburger Menu Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+            className="flex md:hidden items-center justify-center p-2 text-white/70 hover:text-white transition cursor-pointer"
+            aria-label="Toggle navigation menu"
+            aria-expanded={isMenuOpen}
+          >
+            {isMenuOpen ? (
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            ) : (
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            )}
+          </button>
         </div>
       </div>
+
+      {/* Mobile Navigation Dropdown Overlay */}
+      {isMenuOpen && (
+        <div className="md:hidden border-t hairline bg-[#0D0D0D]/95 backdrop-blur-md">
+          <div className="flex flex-col gap-4 p-6 font-mono text-sm">
+            {NAV.map((item) => {
+              const targetId =
+                item.href === "#" ? "product" : item.href.replace("#", "");
+              const isActive = activeId === targetId;
+              return (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  onClick={(e) => handleNavClick(e, targetId)}
+                  className={`py-2 border-b border-white/[0.04] transition-colors ${
+                    isActive ? "text-neon font-medium" : "text-white/70 hover:text-white"
+                  }`}
+                >
+                  {item.label}
+                </a>
+              );
+            })}
+            <div className="pt-2 flex flex-col gap-3">
+              <Show when="signed-out">
+                <Link
+                  href="/sign-in"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="py-2 text-white/70 hover:text-white transition-colors border-b border-white/[0.04]"
+                >
+                  Sign in
+                </Link>
+
+                <Link
+                  href="/sign-up"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="bg-neon text-[#0D0D0D] text-center text-sm font-semibold py-3 hover:opacity-90 transition"
+                >
+                  Get Profyl →
+                </Link>
+              </Show>
+
+              <Show when="signed-in">
+                <Link
+                  href="/dashboard"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="bg-neon text-[#0D0D0D] text-center text-sm font-semibold py-3 hover:opacity-90 transition"
+                >
+                  Dashboard →
+                </Link>
+              </Show>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

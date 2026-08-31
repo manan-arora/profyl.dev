@@ -17,12 +17,12 @@ describe("refreshPublicProfileData feedback", () => {
     vi.clearAllMocks();
   });
 
-  it("shows a top-center success toast after refresh completes", async () => {
+  it("shows a top-center success toast after refresh completes and refreshed is true", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
         ok: true,
-        json: vi.fn().mockResolvedValue(freshData),
+        json: vi.fn().mockResolvedValue({ data: freshData, refreshed: true }),
       }),
     );
     const onData = vi.fn();
@@ -35,6 +35,25 @@ describe("refreshPublicProfileData feedback", () => {
     expect(toast.success).toHaveBeenCalledWith("Profyl updated just now", {
       position: "top-center",
     });
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("does not show a success toast after refresh completes and refreshed is false", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({ data: freshData, refreshed: false }),
+      }),
+    );
+    const onData = vi.fn();
+
+    await expect(
+      refreshPublicProfileData("alex", onData, vi.fn()),
+    ).resolves.toBe(true);
+
+    expect(onData).toHaveBeenCalledWith(freshData);
+    expect(toast.success).not.toHaveBeenCalled();
     expect(toast.error).not.toHaveBeenCalled();
   });
 

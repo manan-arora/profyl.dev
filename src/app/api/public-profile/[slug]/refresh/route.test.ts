@@ -23,18 +23,19 @@ describe("public profile refresh route", () => {
 
   it("refreshes published profiles and returns canonical data", async () => {
     const data = { identity: { name: "Alex" } };
+    const refreshResult = { data: data as ProfylPageData, refreshed: true };
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       id: "user_123",
       isPublished: true,
     } as any);
-    vi.mocked(refreshPublicProfile).mockResolvedValue(data as ProfylPageData);
+    vi.mocked(refreshPublicProfile).mockResolvedValue(refreshResult);
 
     const response = await GET(new Request("http://localhost"), {
       params: Promise.resolve({ slug: "alex" }),
     });
 
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toEqual(data);
+    await expect(response.json()).resolves.toEqual(refreshResult);
     expect(refreshPublicProfile).toHaveBeenCalledWith("user_123");
   });
 

@@ -6,7 +6,7 @@ export function ProfylQuantifiedSignals({ data }: { data: ProfylPageData }) {
 
   const signals = [
     {
-      value: quantifiedSignals.leetcodeProblemsSolved !== null ? quantifiedSignals.leetcodeProblemsSolved.toLocaleString() : "—",
+      value: quantifiedSignals.leetcodeProblemsSolved !== null ? quantifiedSignals.leetcodeProblemsSolved.toLocaleString("en-US") : "—",
       label: "DSA Problems Solved",
       tag: "LEETCODE",
     },
@@ -21,7 +21,7 @@ export function ProfylQuantifiedSignals({ data }: { data: ProfylPageData }) {
       tag: "LEETCODE",
     },
     {
-      value: quantifiedSignals.githubContributionsLast12Months !== null ? quantifiedSignals.githubContributionsLast12Months.toLocaleString() : "—",
+      value: quantifiedSignals.githubContributionsLast12Months !== null ? quantifiedSignals.githubContributionsLast12Months.toLocaleString("en-US") : "—",
       label: "GitHub Contributions",
       tag: "LAST 12 MONTHS",
     },
@@ -45,7 +45,7 @@ export function ProfylQuantifiedSignals({ data }: { data: ProfylPageData }) {
           title="Quantified signals"
           subtitle="Numbers pulled directly from connected sources. Refreshed every 12 hrs."
         />
-        <div className="mt-10 grid grid-cols-2 lg:grid-cols-3 gap-px bg-white/8 ">
+        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-white/8 ">
           {signals.map((s, idx) => (
             <div
               key={idx}

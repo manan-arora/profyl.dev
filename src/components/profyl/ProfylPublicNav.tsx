@@ -18,6 +18,8 @@ export function ProfylPublicNav() {
   const { isSignedIn } = useAuth();
   const [activeId, setActiveId] = useState<string>("hero");
 
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   useEffect(() => {
     // Observe sections to highlight based on scroll position
     const observerOptions = {
@@ -60,6 +62,7 @@ export function ProfylPublicNav() {
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
     setActiveId(id);
+    setIsMenuOpen(false);
     const element = document.getElementById(id);
     if (element) {
       const offset = 80; // offset for the sticky navbar height
@@ -79,6 +82,7 @@ export function ProfylPublicNav() {
 
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault();
+    setIsMenuOpen(false);
     if (typeof window !== "undefined") {
       navigator.clipboard.writeText(window.location.href);
       toast.success("Profile URL copied to clipboard!");
@@ -132,20 +136,100 @@ export function ProfylPublicNav() {
 
         {/* Public Actions */}
         <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3">
+            <button
+              onClick={handleShare}
+              className="text-sm text-white/70 hover:text-white transition-colors cursor-pointer"
+            >
+              Share
+            </button>
+            <Link
+              href={claimUrl}
+              className="bg-neon text-[#0D0D0D] text-sm font-semibold px-4 py-2 hover:opacity-90 transition inline-block"
+            >
+              Claim Yours →
+            </Link>
+          </div>
+
+          {/* Hamburger Menu Toggle Button */}
           <button
-            onClick={handleShare}
-            className="text-sm text-white/70 hover:text-white transition-colors cursor-pointer"
+            type="button"
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+            className="flex md:hidden items-center justify-center p-2 text-white/70 hover:text-white transition cursor-pointer"
+            aria-label="Toggle navigation menu"
+            aria-expanded={isMenuOpen}
           >
-            Share
+            {isMenuOpen ? (
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            ) : (
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            )}
           </button>
-          <Link
-            href={claimUrl}
-            className="bg-neon text-[#0D0D0D] text-sm font-semibold px-4 py-2 hover:opacity-90 transition inline-block"
-          >
-            Claim Yours →
-          </Link>
         </div>
       </div>
+
+      {/* Mobile Navigation Dropdown Overlay */}
+      {isMenuOpen && (
+        <div className="md:hidden border-t hairline bg-[#0D0D0D]/95 backdrop-blur-md">
+          <div className="flex flex-col gap-4 p-6 font-mono text-sm">
+            {NAV_ITEMS.map((item) => {
+              const isActive = activeId === item.id;
+              return (
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  onClick={(e) => handleNavClick(e, item.id)}
+                  className={`py-2 border-b border-white/[0.04] transition-colors ${
+                    isActive ? "text-neon font-medium" : "text-white/70 hover:text-white"
+                  }`}
+                >
+                  {item.label}
+                </a>
+              );
+            })}
+            <div className="pt-2 flex flex-col gap-3">
+              <button
+                onClick={handleShare}
+                className="py-2 text-white/70 hover:text-white transition-colors border-b border-white/[0.04] text-left cursor-pointer"
+              >
+                Share Profile
+              </button>
+              <Link
+                href={claimUrl}
+                onClick={() => setIsMenuOpen(false)}
+                className="bg-neon text-[#0D0D0D] text-center text-sm font-semibold py-3 hover:opacity-90 transition"
+              >
+                Claim Yours →
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

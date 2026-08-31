@@ -78,7 +78,7 @@ export default function RepositoryCard({
         </div>
 
         {/* Feature switch toggle & Edit buttons */}
-        <div className="flex items-center gap-4 shrink-0 justify-end md:justify-start">
+        <div className="flex flex-wrap items-center gap-4 shrink-0 justify-between md:justify-start w-full md:w-auto border-t border-white/5 pt-4 md:pt-0 md:border-t-0">
           <label className="flex items-center gap-2 cursor-pointer select-none">
             <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">
               Feature

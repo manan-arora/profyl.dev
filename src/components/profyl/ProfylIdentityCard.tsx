@@ -151,23 +151,23 @@ export function ProfylIdentityCard({ data }: { data: ProfylPageData }) {
         {/* Group top elements to avoid sparse spacing when stretched */}
         <div className="flex-1 flex flex-col justify-start">
           {/* Identity */}
-          <div className="flex items-start gap-5">
+          <div className="flex flex-col sm:flex-row items-start gap-5">
             {/* Avatar / Fallback initials */}
             {identity.avatarUrl ? (
               <img
                 src={identity.avatarUrl}
                 alt={identity.name}
-                className="size-20 lg:size-24 shrink-0 border-neon border-2 object-cover bg-[#0D0D0D] select-none"
+                className="size-20 min-[360px]:size-24 shrink-0 border-neon border-2 object-cover bg-[#0D0D0D] select-none"
               />
             ) : (
-              <div className="size-20 lg:size-24 shrink-0 border-neon border-2 bg-[#0D0D0D] flex items-center justify-center font-display font-bold text-neon text-3xl neon-text-glow select-none">
+              <div className="size-20 min-[360px]:size-24 shrink-0 border-neon border-2 bg-[#0D0D0D] flex items-center justify-center font-display font-bold text-neon text-3xl neon-text-glow select-none">
                 {initials}
               </div>
             )}
 
             {/* Identity information */}
-            <div className="flex-1 min-w-0">
-              <div className="font-display text-3xl lg:text-4xl font-semibold tracking-tight text-white">
+            <div className="flex-1 min-w-0 w-full">
+              <div className="font-display text-3xl lg:text-4xl font-semibold tracking-tight text-white break-words">
                 {identity.name}
               </div>
 
@@ -176,9 +176,9 @@ export function ProfylIdentityCard({ data }: { data: ProfylPageData }) {
                   Role, location, and education info not added yet.
                 </div>
               ) : (
-                <div className="flex flex-col gap-1 mt-1">
+                <div className="flex flex-col gap-1.5 mt-2">
                   {row1Items.length > 0 && (
-                    <div className="font-mono text-xs text-white/55 flex items-center whitespace-nowrap overflow-hidden leading-normal">
+                    <div className="font-mono text-xs text-white/55 flex flex-wrap items-center gap-y-1 leading-normal">
                       {row1Items.map((item, index) => (
                         <span key={item.key || index} className="inline-flex items-center min-w-0 shrink-0">
                           {index > 0 && <span className="mx-1.5 text-white/30 select-none shrink-0">·</span>}
@@ -188,7 +188,7 @@ export function ProfylIdentityCard({ data }: { data: ProfylPageData }) {
                     </div>
                   )}
                   {row2Items.length > 0 && (
-                    <div className="font-mono text-xs text-white/55 flex items-center whitespace-nowrap overflow-hidden leading-normal">
+                    <div className="font-mono text-xs text-white/55 flex flex-wrap items-center gap-y-1 leading-normal">
                       {row2Items.map((item, index) => (
                         <span key={item.key || index} className="inline-flex items-center">
                           {index > 0 && <span className="mx-1.5 text-white/30 select-none">·</span>}
@@ -265,9 +265,8 @@ export function ProfylIdentityCard({ data }: { data: ProfylPageData }) {
           )}
 
           {/* Row 2: Social Links (Always remains anchored at bottom) */}
-          <div className="flex items-center justify-between font-mono text-[11px] text-white/60">
-            
-            <div className="flex items-center gap-4 ml-auto sm:ml-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 font-mono text-[11px] text-white/60">
+            <div className="flex flex-wrap items-center gap-4">
               {identity.githubUrl && (
                 <a
                   href={identity.githubUrl}

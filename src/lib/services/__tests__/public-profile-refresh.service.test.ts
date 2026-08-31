@@ -35,7 +35,7 @@ describe("refreshPublicProfile", () => {
     expect(ensureProfileDataFresh).toHaveBeenCalledTimes(1);
 
     resolveFreshness?.();
-    await expect(firstRefresh).resolves.toBe(profileData);
+    await expect(firstRefresh).resolves.toEqual({ data: profileData, refreshed: true });
     expect(getProfylPageData).toHaveBeenCalledTimes(1);
   });
 
@@ -47,7 +47,7 @@ describe("refreshPublicProfile", () => {
     await expect(refreshPublicProfile("user_123")).rejects.toThrow(
       "refresh failed",
     );
-    await expect(refreshPublicProfile("user_123")).resolves.toBe(profileData);
+    await expect(refreshPublicProfile("user_123")).resolves.toEqual({ data: profileData, refreshed: true });
     expect(ensureProfileDataFresh).toHaveBeenCalledTimes(2);
   });
 });

@@ -130,10 +130,10 @@ describe("Dashboard Save/Publish Action", () => {
       expect(result.error).toContain("bio");
     });
 
-    it("should fail validation if tech stack exceeds 8 items", async () => {
+    it("should fail validation if tech stack exceeds 6 items", async () => {
       const invalidProfile = {
         ...validProfile,
-        techStack: ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
+        techStack: ["1", "2", "3", "4", "5", "6", "7"],
       };
 
       const result = await saveChangesAction({

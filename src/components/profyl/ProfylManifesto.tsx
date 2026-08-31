@@ -15,7 +15,7 @@ export function ProfylManifesto() {
         </div>
         
         <div className="mt-12 pt-4">
-          <p className="font-display font-semibold tracking-[-0.02em] text-4xl md:text-5xl lg:text-6xl leading-[1.05] text-white">
+          <p className="font-display font-semibold tracking-[-0.02em] text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-[1.05] text-white">
             We don't believe in <span className="text-white/30">10x developers.</span> <br />
             We believe in <span className="text-neon italic">visible</span> builders.
           </p>

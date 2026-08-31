@@ -23,7 +23,7 @@ export function SaveProcessingModal({
         hideClose
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
-        className="p-7 sm:p-9 font-sans text-white overflow-hidden"
+        className="p-5 sm:p-9 font-sans text-white overflow-hidden max-w-[90vw] sm:max-w-md"
       >
         {state === "preparing" ? (
           <PreparationLoader />

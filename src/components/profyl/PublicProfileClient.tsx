@@ -27,9 +27,14 @@ export async function refreshPublicProfileData(
       throw new Error("Profile refresh failed");
     }
 
-    const freshData = (await response.json()) as ProfylPageData;
+    const { data: freshData, refreshed } = (await response.json()) as {
+      data: ProfylPageData;
+      refreshed: boolean;
+    };
     onData(freshData);
-    toast.success("Profyl updated just now", { position: "top-center" });
+    if (refreshed) {
+      toast.success("Profyl updated just now", { position: "top-center" });
+    }
     return true;
   } catch {
     toast.error("Profile data couldn’t update. The data may be outdated.", {

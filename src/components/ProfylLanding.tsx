@@ -29,32 +29,32 @@ function Hero() {
   return (
     <section id="product" className="relative pt-20 pb-24 lg:pt-24 lg:pb-32">
       <div className="absolute inset-0 grid-bg opacity-50 [mask-image:radial-gradient(ellipse_at_top,black_30%,transparent_75%)]" />
-      <div className="relative mx-auto max-w-[1400px] px-6 lg:px-10 grid lg:grid-cols-[1.05fr_1fr] lg:gap-12 items-start">
+      <div className="relative mx-auto max-w-[1400px] px-6 lg:px-10 grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] gap-12 items-start">
         <div className="lg:pt-4">
           <h1 className="font-display font-semibold tracking-[-0.03em] text-[clamp(2.6rem,6vw,5.5rem)] leading-[0.95] text-white">
-            Stop sending <br />
+            Stop sending <br className="hidden sm:inline" />
             <span className="lg:whitespace-nowrap">
-              pieces <br /> <span className="text-white/30">of yourself</span>
+              pieces <br className="hidden sm:inline" /> <span className="text-white/30">of yourself</span>
             </span>{" "}
-            <br />
-            Send your <br />
+            <br className="hidden sm:inline" />
+            Send your <br className="hidden sm:inline" />
             <span className="text-neon neon-text-glow italic">Profyl.</span>
           </h1>
           <p className="mt-8 max-w-xl text-lg text-white/65 leading-relaxed">
             One living profile for everything you code.
           </p>
 
-          <div className="mt-10 flex flex-wrap items-center gap-3">
+          <div className="mt-10 flex flex-col sm:flex-row sm:items-center gap-3">
             <a
               href="/sign-up"
-              className="group relative inline-flex items-center gap-2 bg-neon text-[#0D0D0D] font-semibold px-6 py-3.5 text-sm tracking-tight hover:opacity-90 transition"
+              className="group relative inline-flex items-center justify-center gap-2 bg-neon text-[#0D0D0D] font-semibold px-6 py-3.5 text-sm tracking-tight hover:opacity-90 transition w-full sm:w-auto text-center"
             >
               Create Your Profyl
               <span className="font-mono">→</span>
             </a>
             <a
               href="/demo"
-              className="inline-flex items-center gap-2 border border-white/15 text-white px-6 py-3.5 text-sm font-medium hover:border-neon hover:text-neon transition"
+              className="inline-flex items-center justify-center gap-2 border border-white/15 text-white px-6 py-3.5 text-sm font-medium hover:border-neon hover:text-neon transition w-full sm:w-auto text-center"
             >
               <span className="size-1.5 bg-neon rounded-full" />
               View Demo
@@ -62,7 +62,7 @@ function Hero() {
           </div>
         </div>
 
-        <div>
+        <div className="w-full overflow-hidden">
           <ProfileCard />
         </div>
       </div>
@@ -105,21 +105,21 @@ function ProfileCard() {
       <div className="relative bg-[#141414] border hairline scan-line">
         {/* identity */}
         <div className="px-6 pt-6 pb-4 flex items-start gap-4">
-          <div className="size-14 border-neon border bg-[#0D0D0D] flex items-center justify-center font-display font-bold text-neon text-lg">
+          <div className="size-14 border-neon border bg-[#0D0D0D] flex items-center justify-center font-display font-bold text-neon text-lg shrink-0">
             AM
           </div>
-          <div className="flex-1">
-            <div className="font-display text-xl font-semibold tracking-tight text-white">
+          <div className="min-w-0 flex-1">
+            <div className="font-display text-xl font-semibold tracking-tight text-white truncate">
               Alex Morgan
             </div>
-            <div className="font-mono text-[11px] text-white/50 mt-0.5">
+            <div className="font-mono text-[11px] text-white/50 mt-0.5 truncate">
               Senior Backend · Berlin · 6y XP
             </div>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {["Go", "Rust", "Distributed", "K8s"].map((t) => (
                 <span
                   key={t}
-                  className="font-mono text-[10px] px-1.5 py-0.5 border hairline text-white/70"
+                  className="font-mono text-[10px] px-1.5 py-0.5 border hairline text-white/70 bg-[#0D0D0D]"
                 >
                   {t}
                 </span>
@@ -160,11 +160,11 @@ function ProfileCard() {
         </div>
 
         {/* grid panels */}
-        <div className="grid grid-cols-2 border-t hairline">
-          <Panel label="Engineering Radar" border="r">
+        <div className="grid grid-cols-1 sm:grid-cols-2 border-t hairline">
+          <Panel label="Engineering Radar" border="sm:r">
             <Radar />
           </Panel>
-          <Panel label="Signal Breakdown">
+          <Panel label="Signal Breakdown" border="t sm:border-t-0">
             <div className="mt-1.5 space-y-2">
               <Bar label="GitHub" value={85} />
               <Bar label="Projects" value={78} />
@@ -173,7 +173,7 @@ function ProfileCard() {
             </div>
           </Panel>
 
-          <Panel label="AI Signal" border="t r">
+          <Panel label="AI Signal" border="t sm:r">
             <p className="font-mono text-[10px] leading-relaxed text-white/70">
               Strong backend-oriented builder with consistent engineering
               activity and recurring systems-focused work.
@@ -181,10 +181,10 @@ function ProfileCard() {
           </Panel>
 
           <Panel label="Featured Project" border="t">
-            <div className="font-display text-sm font-semibold text-white">
+            <div className="font-display text-sm font-semibold text-white truncate">
               orbit/scheduler
             </div>
-            <div className="font-mono text-[10px] text-white/50 mt-1">
+            <div className="font-mono text-[10px] text-white/50 mt-1 truncate">
               Distributed cron · Go · 4.2k★
             </div>
           </Panel>
@@ -631,7 +631,7 @@ function UseCases() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-px bg-white/8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/8">
           {items.map((f) => (
             <div
               key={f.n}
@@ -666,7 +666,7 @@ function Manifesto() {
         <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-neon mb-8">
           ◇ MANIFESTO
         </div>
-        <p className="font-display font-semibold tracking-[-0.02em] text-4xl md:text-5xl lg:text-6xl leading-[1.05] text-white">
+        <p className="font-display font-semibold tracking-[-0.02em] text-3xl md:text-5xl lg:text-6xl leading-[1.05] text-white">
           We don't believe in{" "}
           <span className="text-white/30">10x developers.</span> <br />
           We believe in <span className="text-neon italic">visible</span>{" "}
@@ -689,30 +689,30 @@ function CtaBlock() {
             backgroundSize: "40px 40px",
           }}
         />
-        <div className="relative p-10 lg:p-20 grid lg:grid-cols-[2fr_1fr] gap-10 items-end">
+        <div className="relative p-8 lg:p-20 grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-10 items-end">
           <div>
             <div className="font-mono text-[11px] uppercase tracking-[0.22em] mb-6">
               ◇ CLAIM YOUR HANDLE
             </div>
-            <h2 className="font-display font-semibold tracking-[-0.03em] text-5xl lg:text-7xl leading-[0.9]">
+            <h2 className="font-display font-semibold tracking-[-0.03em] text-4xl lg:text-7xl leading-[0.9]">
               profyl.dev/<span className="italic font-bold">you</span>
             </h2>
-            <p className="mt-6 text-[#0D0D0D]/75 text-lg max-w-lg">
+            <p className="mt-6 text-[#0D0D0D]/75 text-base lg:text-lg max-w-lg">
               One link. Your whole developer story.
               <br />
               Connect your signals. Curate your work. Make it visible.
             </p>
           </div>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 w-full sm:flex-row lg:flex-col">
             <a
               href="/sign-up"
-              className="bg-[#0D0D0D] text-neon font-semibold px-6 py-4 text-center hover:opacity-90 transition"
+              className="bg-[#0D0D0D] text-neon font-semibold px-6 py-4 text-center hover:opacity-90 transition flex-1 sm:flex-none"
             >
               Create Your Profyl →
             </a>
             <a
               href="/demo"
-              className="border-2 border-[#0D0D0D] text-[#0D0D0D] font-semibold px-6 py-4 text-center hover:bg-[#0D0D0D] hover:text-[var(--neon)] transition-colors"
+              className="border-2 border-[#0D0D0D] text-[#0D0D0D] font-semibold px-6 py-4 text-center hover:bg-[#0D0D0D] hover:text-[var(--neon)] transition-colors flex-1 sm:flex-none"
             >
               View Demo
             </a>
@@ -727,16 +727,18 @@ function Footer() {
   return (
     <footer className="border-t hairline bg-[#0D0D0D]">
       <div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-10 flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
-        <div className="flex items-center gap-2.5">
-          <Image
-            src="/profyl-logo.svg"
-            alt="Profyl logo"
-            width={24}
-            height={24}
-            className="size-6 object-contain"
-          />
-          <span className="font-display font-semibold text-white">profyl</span>
-          <span className="font-mono text-[10px] text-white/40 ml-2">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
+          <div className="flex items-center gap-2.5">
+            <Image
+              src="/profyl-logo.svg"
+              alt="Profyl logo"
+              width={24}
+              height={24}
+              className="size-6 object-contain"
+            />
+            <span className="font-display font-semibold text-white">profyl</span>
+          </div>
+          <span className="font-mono text-[10px] text-white/40 sm:ml-2">
             © 2026 — Built because a README wasn't enough.
           </span>
         </div>

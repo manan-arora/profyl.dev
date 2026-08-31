@@ -140,7 +140,7 @@ export function ProfessionalSection() {
           </span>
         </div>
       </div>
-      <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         <label className="block">
           <span className="block font-mono text-[10px] uppercase tracking-[0.18em] text-white/45 mb-2">
             Current Role
@@ -207,7 +207,7 @@ export function EducationSection() {
         </div>
       </div>
 
-      <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <label className="block">
           <span className="block font-mono text-[10px] uppercase tracking-[0.18em] text-white/45 mb-2">
             College / University

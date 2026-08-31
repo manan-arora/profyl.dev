@@ -17,10 +17,10 @@ export default function ProjectsEditor() {
   }, [localProjects]);
 
   return (
-    <div className="mx-auto max-w-[1200px] px-6 lg:px-10 py-10 lg:py-8 space-y-8 select-none">
+    <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 sm:py-10 space-y-8 select-none">
       {/* Page Header Introduction */}
       <div>
-        <h2 className="mt-4 font-display font-semibold tracking-tight text-3xl text-white">
+        <h2 className="mt-4 font-display font-semibold tracking-tight text-2xl sm:text-3xl text-white">
           Curate the code recruiters see.
         </h2>
         <p className="mt-2 text-white/55 text-sm max-w-2xl">

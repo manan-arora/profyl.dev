@@ -74,10 +74,6 @@ export function OnboardingProjects({
               </span>
             </div>
 
-            {/* Current Step */}
-            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/45">
-              <span className="ml-2">Step 02 · Featured Projects</span>
-            </div>
           </div>
         </header>
 
@@ -102,7 +98,7 @@ export function OnboardingProjects({
             ) : repositories.length === 0 ? (
               <EmptyState onResync={onResync} />
             ) : (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-white/8 border hairline">
                 {repositories.map((r) => (
                   <RepoCard
                     key={r.id}
@@ -120,27 +116,27 @@ export function OnboardingProjects({
 
         {/* Fixed Footer Selection Tracker */}
         <div className="fixed inset-x-0 bottom-0 z-20 border-t hairline bg-[#0D0D0D]/95 backdrop-blur-sm">
-          <div className="mx-auto max-w-6xl px-6 h-20 flex items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 py-4 sm:py-0 sm:h-20 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-4">
               <div className="flex items-center gap-1.5">
                 {Array.from({ length: MAX_SELECTIONS }).map((_, i) => (
                   <span
                     key={i}
                     className={
-                      "h-[3px] w-7 transition-colors " +
+                      "h-[3px] w-6 sm:w-7 transition-colors " +
                       (i < selected.length ? "bg-neon" : "bg-white/15")
                     }
                   />
                 ))}
               </div>
-              <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/60 tabular-nums">
+              <span className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-white/60 tabular-nums">
                 {selectedCounter}
               </span>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3">
               {error && (
-                <span className="text-red-500 text-xs font-mono max-w-[200px] sm:max-w-none text-right">
+                <span className="text-red-500 text-[10px] sm:text-xs font-mono max-w-[200px] sm:max-w-none text-right truncate">
                   {error}
                 </span>
               )}
@@ -148,7 +144,7 @@ export function OnboardingProjects({
                 type="button"
                 onClick={() => onContinue(selected)}
                 disabled={selected.length === 0 || isPending}
-                className="inline-flex items-center gap-2 bg-neon text-[#0D0D0D] px-6 py-3 text-sm font-semibold transition disabled:opacity-25 disabled:cursor-not-allowed hover:opacity-90 cursor-pointer"
+                className="inline-flex items-center gap-2 bg-neon text-[#0D0D0D] px-6 py-3 text-sm font-semibold transition disabled:opacity-25 disabled:cursor-not-allowed hover:opacity-90 cursor-pointer w-full sm:w-auto justify-center"
               >
                 {isPending ? "Saving…" : <>Continue <span className="font-mono">→</span></>}
               </button>

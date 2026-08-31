@@ -88,7 +88,7 @@ const profileSaveSchema = z.object({
     .nullable()
     .optional()
     .transform((v) => (v === "" ? null : v)),
-  techStack: z.array(z.string().max(50)).max(8), // Enforces max 8 technologies limit
+  techStack: z.array(z.string().max(50)).max(6), // Enforces max 6 technologies limit
   linkedinUrl: urlSchema,
   portfolioUrl: urlSchema,
   resumeUrl: urlSchema,

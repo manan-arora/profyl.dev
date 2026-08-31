@@ -2,32 +2,32 @@ import { getProfylPageData } from "@/lib/services/profyl-page.service";
 import { ensureProfileDataFresh } from "@/lib/services/freshness.service";
 import { ProfylPageData } from "@/types/profyl-page";
 
-const inFlightRefreshes = new Map<string, Promise<ProfylPageData>>();
+const inFlightRefreshes = new Map<string, Promise<{ data: ProfylPageData; refreshed: boolean }>>();
 
 /** Shares one freshness pipeline and read-model fetch per user in this process. */
-export function refreshPublicProfile(userId: string): Promise<ProfylPageData> {
+export function refreshPublicProfile(userId: string): Promise<{ data: ProfylPageData; refreshed: boolean }> {
   const existingRefresh = inFlightRefreshes.get(userId);
   if (existingRefresh) {
     return existingRefresh;
   }
 
   const refresh = (async () => {
-    await ensureProfileDataFresh(userId);
+    const refreshed = await ensureProfileDataFresh(userId);
 
     const data = await getProfylPageData({ userId });
     if (!data) {
       throw new Error("Profile data unavailable");
     }
 
-    return data;
+    return { data, refreshed };
   })();
 
   const trackedRefresh = refresh.then(
-    (data) => {
+    (result) => {
       if (inFlightRefreshes.get(userId) === trackedRefresh) {
         inFlightRefreshes.delete(userId);
       }
-      return data;
+      return result;
     },
     (error) => {
       if (inFlightRefreshes.get(userId) === trackedRefresh) {

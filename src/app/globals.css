@@ -67,8 +67,9 @@ body {
 }
 
 /* Profyl Public View Anchor Scrolling Offset */
-.profyl-public-view section[id] {
-  scroll-margin-top: 4rem;
+.profyl-public-view section[id],
+section[id] {
+  scroll-margin-top: 4.5rem;
 }
 
 .recharts-wrapper:focus,

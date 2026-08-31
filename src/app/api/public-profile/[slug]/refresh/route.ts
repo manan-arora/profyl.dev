@@ -21,8 +21,8 @@ export async function GET(
   }
 
   try {
-    const data = await refreshPublicProfile(user.id);
-    return NextResponse.json(data, {
+    const result = await refreshPublicProfile(user.id);
+    return NextResponse.json(result, {
       headers: { "Cache-Control": "no-store" },
     });
   } catch (error) {

@@ -97,7 +97,7 @@ export function RepoCard({
       disabled={disabled}
       aria-pressed={selected}
       className={
-        "group relative text-left p-6 min-h-[210px] flex flex-col transition-colors outline-none border hairline " +
+        "group relative text-left p-5 flex flex-col transition-colors outline-none border hairline " +
         (selected
           ? "bg-[#141A0C] neon-glow z-10"
           : disabled
@@ -107,11 +107,11 @@ export function RepoCard({
     >
       <div className="flex items-start justify-between gap-3 w-full">
         <div className="min-w-0">
-          <div className="font-display font-semibold tracking-tight text-[17px] truncate text-white">
+          <div className="font-display font-semibold tracking-tight text-[17px] break-words text-white">
             {repo.name}
           </div>
           {repo.primaryLanguage && (
-            <div className="mt-1 flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/45">
+            <div className="mt-1.5 flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/45">
               <span className="size-1.5 bg-neon rounded-full" />
               {repo.primaryLanguage}
             </div>

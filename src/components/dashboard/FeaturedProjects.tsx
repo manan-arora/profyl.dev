@@ -13,6 +13,9 @@ export default function FeaturedProjects({ repos, onReorder }: FeaturedProjectsP
   const [dragging, setDragging] = useState<number | null>(null);
   const [over, setOver] = useState<number | null>(null);
 
+  // References to keep track of item coordinates during touch interactions
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+
   // Handle Drag Over to trigger immediate visual reflow reordering
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
@@ -27,6 +30,56 @@ export default function FeaturedProjects({ repos, onReorder }: FeaturedProjectsP
     }
   };
 
+  // Touch Event Handlers for mobile/tablet devices
+  const handleTouchStart = (e: React.TouchEvent, index: number) => {
+    dragIdx.current = index;
+    setDragging(index);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent, index: number) => {
+    if (dragIdx.current === null) return;
+
+    // Prevent default scroll behaviors while dragging an item
+    if (e.cancelable) {
+      e.preventDefault();
+    }
+
+    const touch = e.touches[0];
+    const clientY = touch.clientY;
+    const clientX = touch.clientX;
+
+    // Find the item currently under the user's touch location
+    let targetIndex = -1;
+    for (let idx = 0; idx < itemRefs.current.length; idx++) {
+      const el = itemRefs.current[idx];
+      if (!el) continue;
+
+      const rect = el.getBoundingClientRect();
+      if (
+        clientY >= rect.top &&
+        clientY <= rect.bottom &&
+        clientX >= rect.left &&
+        clientX <= rect.right
+      ) {
+        targetIndex = idx;
+        break;
+      }
+    }
+
+    if (targetIndex !== -1 && targetIndex !== dragIdx.current) {
+      onReorder(dragIdx.current, targetIndex);
+      dragIdx.current = targetIndex;
+      setDragging(targetIndex);
+      setOver(targetIndex);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    dragIdx.current = null;
+    setDragging(null);
+    setOver(null);
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 select-none">
       {repos.map((r, i) => {
@@ -36,6 +89,9 @@ export default function FeaturedProjects({ repos, onReorder }: FeaturedProjectsP
         return (
           <div
             key={r.id}
+            ref={(el) => {
+              itemRefs.current[i] = el;
+            }}
             draggable
             onDragStart={(e) => {
               dragIdx.current = i;
@@ -56,8 +112,12 @@ export default function FeaturedProjects({ repos, onReorder }: FeaturedProjectsP
               setDragging(null);
               setOver(null);
             }}
+            // Touch Event bindings
+            onTouchStart={(e) => handleTouchStart(e, i)}
+            onTouchMove={(e) => handleTouchMove(e, i)}
+            onTouchEnd={handleTouchEnd}
             className={[
-              "group relative flex items-center gap-4 px-4 py-3 bg-[#0F0F0F] cursor-grab active:cursor-grabbing transition-all rounded-none",
+              "group relative flex items-center gap-4 px-4 py-3 bg-[#0F0F0F] cursor-grab active:cursor-grabbing transition-all rounded-none touch-none",
               isDragging
                 ? "border border-dashed border-neon/50 bg-[#0D0D0D] opacity-25 scale-95"
                 : isOver
@@ -81,7 +141,8 @@ export default function FeaturedProjects({ repos, onReorder }: FeaturedProjectsP
                 {r.customDescription || r.description || "No description provided"}
               </div>
             </div>
-            <span className="border border-neon/40 px-1.5 py-0.5 font-mono text-[9px] tracking-[0.18em] text-neon rounded-none">
+
+            <span className="hidden min-[400px]:inline-block border border-neon/40 px-1.5 py-0.5 font-mono text-[9px] tracking-[0.18em] text-neon rounded-none shrink-0">
               FEATURED
             </span>
           </div>
