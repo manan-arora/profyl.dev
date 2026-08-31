@@ -80,7 +80,7 @@ function ProfylLogoSvg({ size = 38 }: { size?: number }) {
       />
       <path
         fill="#c7f930"
-        d="M 498.21875 661.050781 L 503.183594 661.015625 C 508.566406 660.988281 513.949219 660.988281 519.335938 660.996094 L 530.621094 660.964844 C 538.496094 660.949219 546.371094 660.949219 554.246094 660.960938 C 564.3125 660.972656 574.378906 660.9375 584.445312 660.886719 C 592.210938 660.855469 599.980469 660.851562 607.746094 660.859375 C 611.457031 660.859375 615.167969 660.847656 618.878906 660.828125 C 624.074219 660.796875 629.273438 660.8125 634.472656 660.839844 L 639.070312 660.789062 C 649.933594 660.90625 657.148438 663.324219 666.691406 668.105469 C 674.097656 673.398438 679.671875 679.722656 684.382812 687.503906 C 687.6875 695.183594 688.351562 701.175781 687.703125 709.527344 C 685.933594 719.15625 683.9375 727.464844 678.339844 735.597656 C 671.507812 742.777344 665.382812 746.929688 655.917969 750.003906 C 649.964844 750.429688 644.230469 750.636719 638.28125 750.628906 L 632.988281 750.671875 C 627.234375 750.714844 621.476562 750.722656 615.722656 750.726562 L 603.683594 750.769531 C 595.277344 750.796875 586.875 750.804688 578.472656 750.804688 C 567.714844 750.804688 556.964844 750.863281 546.207031 750.933594 C 537.921875 750.980469 529.636719 750.992188 521.355469 750.988281 C 517.390625 750.996094 513.425781 751.015625 509.457031 751.046875 C 503.910156 751.089844 498.359375 751.078125 492.8125 751.050781 L 487.875 751.125 C 479.589844 751.027344 474.835938 749.96875 467.558594 745.859375 C 458.234375 738.394531 451.078125 730.75 446.074219 719.832031 C 444.128906 710.484375 443.417969 702.757812 446.132812 693.464844 C 450.28125 682.855469 455.441406 675.78125 464.171875 668.519531 C 475.011719 661.984375 485.832031 661.003906 498.21875 661.046875"
+        d="M 498.21875 661.050781 L 503.183594 661.015625 C 508.566406 660.988281 513.949219 660.988281 519.335938 660.996094 L 530.621094 660.964844 C 538.496094 660.949219 546.371094 660.949219 554.246094 660.960938 C 564.3125 660.972656 574.378906 660.9375 584.445312 660.886719 C 592.210938 660.855469 599.980469 660.851562 607.746094 660.859375 C 611.457031 660.859375 615.167969 660.847656 618.878906 660.828125 C 624.074219 660.796875 629.273438 660.8125 634.472656 660.839844 L 639.070312 660.789062 C 649.933594 660.90625 657.148438 663.324219 666.691406 668.105469 C 674.097656 673.398438 679.671875 679.722656 684.382812 687.503906 C 687.6875 695.183594 688.351562 701.175781 687.703125 709.527344 C 685.933594 719.15625 683.9375 727.464844 678.339844 735.597656 C 671.507812 742.777344 665.382812 746.929688 655.917969 750.003906 C 649.964844 740.429688 644.230469 750.636719 638.28125 750.628906 L 632.988281 750.671875 C 627.234375 750.714844 621.476562 750.722656 615.722656 750.726562 L 603.683594 750.769531 C 595.277344 750.796875 586.875 750.804688 578.472656 750.804688 C 567.714844 750.804688 556.964844 750.863281 546.207031 750.933594 C 537.921875 750.980469 529.636719 750.992188 521.355469 750.988281 C 517.390625 750.996094 513.425781 751.015625 509.457031 751.046875 C 503.910156 751.089844 498.359375 751.078125 492.8125 751.050781 L 487.875 751.125 C 479.589844 751.027344 474.835938 749.96875 467.558594 745.859375 C 458.234375 738.394531 451.078125 730.75 446.074219 719.832031 C 444.128906 710.484375 443.417969 702.757812 446.132812 693.464844 C 450.28125 682.855469 455.441406 675.78125 464.171875 668.519531 C 475.011719 661.984375 485.832031 661.003906 498.21875 661.046875"
       />
       <path
         fill="#c7f82f"
@@ -106,12 +106,74 @@ function ProfylLogoSvg({ size = 38 }: { size?: number }) {
   );
 }
 
+/**
+ * Fetches font array buffers for Satori rendering with fallback handling.
+ */
+async function loadGoogleFont(font: string, weight: number = 400) {
+  try {
+    const url = `https://fonts.googleapis.com/css2?family=${font}:wght@${weight}&display=swap`;
+    const css = await fetch(url, {
+      headers: {
+        // Request TTF font format from Google Fonts by using a legacy Safari User-Agent
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; de-at) AppleWebKit/533.21.1 (KHTML, like Gecko) Version/5.0.5 Safari/533.21.1",
+      },
+    }).then((res) => res.text());
+
+    // Strictly match opentype, truetype (TTF), or woff (not woff2) font URLs
+    const fontUrl = css.match(
+      /src: url\((.+?)\) format\('(?:opentype|truetype|woff)'\)/
+    )?.[1];
+
+    if (!fontUrl) return null;
+
+    const res = await fetch(fontUrl);
+    if (!res.ok) return null;
+    return await res.arrayBuffer();
+  } catch {
+    return null;
+  }
+}
+
 export default async function Image({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+
+  // Attempt font loads safely
+  const [spaceGroteskBuffer, jetbrainsMonoBuffer, interBuffer] = await Promise.all([
+    loadGoogleFont("Space+Grotesk", 600),
+    loadGoogleFont("JetBrains+Mono", 600),
+    loadGoogleFont("Inter", 400),
+  ]);
+
+  const fontConfigs = [];
+  if (spaceGroteskBuffer) {
+    fontConfigs.push({
+      name: "Space Grotesk",
+      data: spaceGroteskBuffer,
+      style: "normal" as const,
+      weight: 600 as const,
+    });
+  }
+  if (jetbrainsMonoBuffer) {
+    fontConfigs.push({
+      name: "JetBrains Mono",
+      data: jetbrainsMonoBuffer,
+      style: "normal" as const,
+      weight: 600 as const,
+    });
+  }
+  if (interBuffer) {
+    fontConfigs.push({
+      name: "Inter",
+      data: interBuffer,
+      style: "normal" as const,
+      weight: 400 as const,
+    });
+  }
 
   // Lightweight database query strictly fetching identity fields
   const user = await prisma.user.findUnique({
@@ -183,13 +245,14 @@ export default async function Image({
             right: 0,
             bottom: 0,
             backgroundImage:
-              "radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0)",
-            backgroundSize: "24px 24px",
+              "linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px)",
+            backgroundSize: "56px 56px",
             display: "flex",
+            opacity: 0.5,
           }}
         />
 
-        {/* Outer Card Container */}
+        {/* Outer Card Container (Identity Card style with scan line effect) */}
         <div
           style={{
             display: "flex",
@@ -198,12 +261,27 @@ export default async function Image({
             width: "100%",
             height: "100%",
             backgroundColor: "#141414",
-            border: "1px solid rgba(255, 255, 255, 0.12)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
             padding: "44px 48px",
             position: "relative",
             boxSizing: "border-box",
           }}
         >
+          {/* Scan lines overlay - same horizontal lines visual accent as Profyl Identity card */}
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundImage:
+                "repeating-linear-gradient(to bottom, transparent, transparent 3px, rgba(255, 255, 255, 0.02) 3px, rgba(255, 255, 255, 0.02) 4px)",
+              display: "flex",
+              pointerEvents: "none",
+            }}
+          />
+
           {/* Top-Left Corner Marker */}
           <div
             style={{
@@ -212,8 +290,8 @@ export default async function Image({
               left: "-1px",
               width: "14px",
               height: "14px",
-              borderTop: "2px solid #C7F82F",
-              borderLeft: "2px solid #C7F82F",
+              borderTop: "2px solid #C7FF41",
+              borderLeft: "2px solid #C7FF41",
               display: "flex",
             }}
           />
@@ -226,13 +304,13 @@ export default async function Image({
               right: "-1px",
               width: "14px",
               height: "14px",
-              borderBottom: "2px solid #C7F82F",
-              borderRight: "2px solid #C7F82F",
+              borderBottom: "2px solid #C7FF41",
+              borderRight: "2px solid #C7FF41",
               display: "flex",
             }}
           />
 
-          {/* Header Row: Logo & Brand Badge */}
+          {/* Header Row: Logo */}
           <div
             style={{
               display: "flex",
@@ -243,42 +321,17 @@ export default async function Image({
           >
             {/* Profyl Brand Logo */}
             <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-              <ProfylLogoSvg size={38} />
+              <ProfylLogoSvg size={42} />
               <span
                 style={{
-                  fontSize: "30px",
-                  fontWeight: 700,
+                  fontSize: "32px",
+                  fontWeight: 600,
                   letterSpacing: "-0.03em",
                   color: "#FFFFFF",
-                  fontFamily: "sans-serif",
+                  fontFamily: "Space Grotesk",
                 }}
               >
                 profyl
-              </span>
-            </div>
-
-            {/* Sub-badge indicator */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                backgroundColor: "#0D0D0D",
-                border: "1px solid rgba(199, 248, 47, 0.35)",
-                padding: "6px 14px",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "11px",
-                  fontWeight: 600,
-                  color: "#C7F82F",
-                  letterSpacing: "0.18em",
-                  textTransform: "uppercase",
-                  fontFamily: "monospace",
-                }}
-              >
-                ◇ Developer Identity
               </span>
             </div>
           </div>
@@ -288,43 +341,45 @@ export default async function Image({
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: "24px",
+              gap: "28px",
               margin: "auto 0",
               width: "100%",
             }}
           >
             {/* Avatar & Main Info Row */}
-            <div style={{ display: "flex", alignItems: "center", gap: "28px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
               {/* Circular Avatar */}
               {avatarDataUrl ? (
                 <img
                   src={avatarDataUrl}
                   alt={name}
                   style={{
-                    width: "116px",
-                    height: "116px",
-                    borderRadius: "116px",
-                    border: "3px solid #C7F82F",
+                    width: "128px",
+                    height: "128px",
+                    borderRadius: "128px",
+                    border: "2px solid #C7FF41",
                     objectFit: "cover",
                     backgroundColor: "#0D0D0D",
                     display: "flex",
+                    flexShrink: 0,
                   }}
                 />
               ) : (
                 <div
                   style={{
-                    width: "116px",
-                    height: "116px",
-                    borderRadius: "116px",
-                    border: "3px solid #C7F82F",
+                    width: "128px",
+                    height: "128px",
+                    borderRadius: "128px",
+                    border: "2px solid #C7FF41",
                     backgroundColor: "#0D0D0D",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    color: "#C7F82F",
-                    fontSize: "40px",
-                    fontWeight: 700,
-                    fontFamily: "sans-serif",
+                    color: "#C7FF41",
+                    fontSize: "44px",
+                    fontWeight: 600,
+                    fontFamily: "Space Grotesk",
+                    flexShrink: 0,
                   }}
                 >
                   {initials}
@@ -336,18 +391,18 @@ export default async function Image({
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  gap: "6px",
-                  maxWidth: "850px",
+                  gap: "8px",
+                  maxWidth: "920px",
                 }}
               >
                 <div
                   style={{
-                    fontSize: "48px",
-                    fontWeight: 700,
+                    fontSize: "56px",
+                    fontWeight: 600,
                     color: "#FFFFFF",
-                    letterSpacing: "-0.02em",
+                    letterSpacing: "-0.025em",
                     lineHeight: 1.1,
-                    fontFamily: "sans-serif",
+                    fontFamily: "Space Grotesk",
                   }}
                 >
                   {name}
@@ -357,9 +412,10 @@ export default async function Image({
                   <div
                     style={{
                       fontSize: "24px",
-                      fontWeight: 500,
-                      color: "#C7F82F",
-                      fontFamily: "sans-serif",
+                      fontWeight: 600,
+                      color: "rgba(255, 255, 255, 0.55)",
+                      fontFamily: "JetBrains Mono",
+                      letterSpacing: "-0.01em",
                     }}
                   >
                     {role}
@@ -373,15 +429,15 @@ export default async function Image({
               <div
                 style={{
                   fontSize: "22px",
-                  lineHeight: 1.45,
+                  lineHeight: 1.5,
                   color: "rgba(255, 255, 255, 0.8)",
                   fontStyle: "italic",
-                  fontFamily: "sans-serif",
-                  maxWidth: "980px",
+                  fontFamily: "Inter",
+                  maxWidth: "1000px",
                   paddingLeft: "4px",
                 }}
               >
-                {`"${bio}"`}
+                {`${bio}`}
               </div>
             ) : null}
           </div>
@@ -400,8 +456,8 @@ export default async function Image({
                 fontSize: "18px",
                 fontWeight: 600,
                 color: "rgba(255, 255, 255, 0.45)",
-                letterSpacing: "0.08em",
-                fontFamily: "monospace",
+                letterSpacing: "0.1em",
+                fontFamily: "JetBrains Mono",
               }}
             >
               profyl.dev
@@ -412,6 +468,7 @@ export default async function Image({
     ),
     {
       ...size,
+      ...(fontConfigs.length > 0 ? { fonts: fontConfigs } : {}),
     }
   );
 }

@@ -205,11 +205,11 @@ export function ProfylIdentityCard({ data }: { data: ProfylPageData }) {
           {/* Bio block (placed entirely below) */}
           <div className="mt-5">
             {identity.bio ? (
-              <div className="font-display italic text-lg text-white/80 leading-snug">
+              <div className="font-sans italic text-lg text-white/80 leading-snug">
                 {identity.bio}
               </div>
             ) : (
-              <div className="font-display italic text-lg text-white/40 leading-snug">
+              <div className="font-sans italic text-lg text-white/40 leading-snug">
                 No bio added yet.
               </div>
             )}

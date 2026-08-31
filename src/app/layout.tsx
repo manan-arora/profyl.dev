@@ -37,27 +37,27 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://profyl.dev"),
   title: {
-    default: "Profyl — See the signal behind the code",
+    default: "Profyl | Your Living Developer Profile",
     template: "%s | Profyl",
   },
   description:
-    "Build a developer profile backed by real GitHub and LeetCode signals. Show what you've built, solved, and contributed.",
+    "Profyl brings your GitHub, LeetCode, projects, and engineering signals into one living developer profile you can share anywhere.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Profyl — See the signal behind the code",
+    title: "Profyl | Your Living Developer Profile",
     description:
-      "Build a developer profile backed by real GitHub and LeetCode signals. Show what you've built, solved, and contributed.",
+      "Profyl brings your GitHub, LeetCode, projects, and engineering signals into one living developer profile you can share anywhere.",
     url: "https://profyl.dev",
     siteName: "Profyl",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Profyl — See the signal behind the code",
+    title: "Profyl | Your Living Developer Profile",
     description:
-      "Build a developer profile backed by real GitHub and LeetCode signals. Show what you've built, solved, and contributed.",
+      "Profyl brings your GitHub, LeetCode, projects, and engineering signals into one living developer profile you can share anywhere.",
   },
 };
 

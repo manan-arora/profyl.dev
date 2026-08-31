@@ -40,17 +40,15 @@ export async function generateMetadata({
   }
 
   const displayName = user.profile?.name || user.githubUsername || slug;
-  const title = `${displayName} — Developer Profile | Profyl`;
-  const description = user.profile?.bio
-    ? user.profile.bio
-    : user.profile?.currentRole
-      ? `${displayName} — ${user.profile.currentRole}. View developer profile, work, and engineering signals on Profyl.`
-      : `View ${displayName}'s living developer profile, work, and engineering signals on Profyl.`;
+  const title = `${displayName} | Profyl`;
+  const description = `Explore ${displayName}'s developer profile, including projects, GitHub and LeetCode activity, and engineering signals on Profyl.`;
 
   const canonicalUrl = `https://profyl.dev/${slug}`;
 
   return {
-    title,
+    title: {
+      absolute: title,
+    },
     description,
     alternates: {
       canonical: `/${slug}`,
@@ -66,7 +64,7 @@ export async function generateMetadata({
           url: `/${slug}/opengraph-image`,
           width: 1200,
           height: 630,
-          alt: `${displayName} — Developer Profile on Profyl`,
+          alt: `${displayName} developer profile on Profyl`,
         },
       ],
     },
