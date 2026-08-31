@@ -61,11 +61,20 @@ export async function generateMetadata({
       url: canonicalUrl,
       siteName: "Profyl",
       type: "profile",
+      images: [
+        {
+          url: `/${slug}/opengraph-image`,
+          width: 1200,
+          height: 630,
+          alt: `${displayName} — Developer Profile on Profyl`,
+        },
+      ],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title,
       description,
+      images: [`/${slug}/opengraph-image`],
     },
   };
 }
