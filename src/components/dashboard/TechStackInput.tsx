@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useDashboard } from "./DashboardContext";
 import { TECH_STACK_REGISTRY } from "@/lib/registries";
 import { Plus } from "lucide-react";
@@ -9,6 +9,7 @@ export default function TechStackInput() {
   const { localProfile, updateProfile } = useDashboard();
   const [techQuery, setTechQuery] = useState("");
   const [showTechDropdown, setShowTechDropdown] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
   // Filter tech stack suggestions based on query and already selected technologies
   const techSuggestions = useMemo(() => {
@@ -20,6 +21,30 @@ export default function TechStackInput() {
     return filtered.slice(0, 6); // Limit suggestions dropdown to 6 items
   }, [techQuery, localProfile.techStack]);
 
+  const showCustomOption = useMemo(() => {
+    const trimmed = techQuery.trim();
+    const selected = localProfile.techStack || [];
+    return !!(
+      trimmed &&
+      !TECH_STACK_REGISTRY.includes(trimmed) &&
+      !selected.includes(trimmed)
+    );
+  }, [techQuery, localProfile.techStack]);
+
+  const dropdownOptions = useMemo(() => {
+    const list: Array<{ type: "suggestion" | "custom"; value: string }> = techSuggestions.map(
+      (tech) => ({ type: "suggestion", value: tech })
+    );
+    if (showCustomOption) {
+      list.push({ type: "custom", value: techQuery.trim() });
+    }
+    return list;
+  }, [techSuggestions, showCustomOption, techQuery]);
+
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [dropdownOptions]);
+
   const addTechnology = (techName: string) => {
     const selected = localProfile.techStack || [];
     if (selected.length >= 6) return;
@@ -27,6 +52,7 @@ export default function TechStackInput() {
 
     updateProfile({ techStack: [...selected, techName] });
     setTechQuery("");
+    setShowTechDropdown(false);
   };
 
   const removeTechnology = (techName: string) => {
@@ -35,9 +61,31 @@ export default function TechStackInput() {
   };
 
   const handleTechKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && techQuery.trim()) {
+    if (e.key === "ArrowDown") {
       e.preventDefault();
-      addTechnology(techQuery.trim());
+      if (!showTechDropdown) {
+        setShowTechDropdown(true);
+      } else if (dropdownOptions.length > 0) {
+        setHighlightedIndex((prev) => (prev + 1 < dropdownOptions.length ? prev + 1 : 0));
+      }
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!showTechDropdown) {
+        setShowTechDropdown(true);
+      } else if (dropdownOptions.length > 0) {
+        setHighlightedIndex((prev) => (prev - 1 >= 0 ? prev - 1 : dropdownOptions.length - 1));
+      }
+    } else if (e.key === "Enter") {
+      if (showTechDropdown && highlightedIndex >= 0 && highlightedIndex < dropdownOptions.length) {
+        e.preventDefault();
+        addTechnology(dropdownOptions[highlightedIndex].value);
+      } else if (techQuery.trim()) {
+        e.preventDefault();
+        addTechnology(techQuery.trim());
+      }
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setShowTechDropdown(false);
     }
   };
 
@@ -107,35 +155,48 @@ export default function TechStackInput() {
           />
 
           {/* Dropdown suggestions with custom scrollbar styling */}
-          {showTechDropdown && (techSuggestions.length > 0 || techQuery.trim()) && (
+          {showTechDropdown && selectedTechs.length < 6 && (techSuggestions.length > 0 || showCustomOption) && (
             <div className="absolute left-0 right-0 z-40 mt-1 border border-white/[0.08] bg-[#141414] max-h-56 overflow-y-auto rounded-none shadow-2xl custom-scrollbar">
-              {techSuggestions.map((tech) => (
-                <button
-                   key={tech}
-                   type="button"
-                   onMouseDown={() => addTechnology(tech)}
-                   className="w-full text-left px-4 py-2.5 text-xs text-white/80 hover:bg-white/[0.05] hover:text-white flex items-center justify-between cursor-pointer border-b border-white/[0.04] last:border-b-0 font-mono"
-                >
-                  <span>{tech}</span>
-                  <span className="font-mono text-[9px] text-neon uppercase tracking-wider">
-                    + select
-                  </span>
-                </button>
-              ))}
+              {techSuggestions.map((tech, index) => {
+                const isHighlighted = index === highlightedIndex;
+                return (
+                  <button
+                     key={tech}
+                     type="button"
+                     onMouseDown={() => addTechnology(tech)}
+                     className={`w-full text-left px-4 py-2.5 text-xs flex items-center justify-between cursor-pointer border-b border-white/[0.04] last:border-b-0 font-mono transition ${
+                       isHighlighted
+                         ? "bg-white/[0.1] text-white"
+                         : "text-white/80 hover:bg-white/[0.05] hover:text-white"
+                     }`}
+                  >
+                    <span>{tech}</span>
+                    <span className="font-mono text-[9px] text-neon uppercase tracking-wider">
+                      + select
+                    </span>
+                  </button>
+                );
+              })}
 
               {/* Allow custom tag option */}
-              {techQuery.trim() &&
-                !TECH_STACK_REGISTRY.includes(techQuery.trim()) &&
-                !selectedTechs.includes(techQuery.trim()) && (
+              {showCustomOption && (() => {
+                const customIndex = techSuggestions.length;
+                const isHighlighted = customIndex === highlightedIndex;
+                return (
                   <button
                     type="button"
                     onMouseDown={() => addTechnology(techQuery.trim())}
-                    className="w-full text-left px-4 py-2.5 text-xs text-neon hover:bg-white/[0.05] flex items-center justify-between border-t border-white/[0.08] font-semibold cursor-pointer font-mono"
+                    className={`w-full text-left px-4 py-2.5 text-xs flex items-center justify-between border-t border-white/[0.08] font-semibold cursor-pointer font-mono transition ${
+                      isHighlighted
+                        ? "bg-white/[0.1] text-white"
+                        : "text-neon hover:bg-white/[0.05]"
+                    }`}
                   >
                     <span>Add custom &quot;{techQuery.trim()}&quot;</span>
                     <Plus className="size-3.5" />
                   </button>
-                )}
+                );
+              })()}
             </div>
           )}
         </div>

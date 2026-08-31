@@ -62,7 +62,9 @@ export default function Error({
           Setup In Progress
         </h1>
         <p className="font-sans text-sm text-white/60 mb-8 max-w-sm leading-relaxed animate-rise-in" style={{ animationDelay: "0.1s" }}>
-          {error.message || "Your account is still being provisioned. This usually takes just a few seconds."}
+          {error.message && !error.message.includes("Server Components render")
+            ? error.message
+            : "Your account is still being provisioned. This usually takes just a few seconds. Please try checking again in a moment."}
         </p>
 
         {/* Action Button */}

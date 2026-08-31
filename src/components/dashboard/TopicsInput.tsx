@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { TOPICS_REGISTRY, TECH_STACK_REGISTRY } from "@/lib/registries";
 import { Plus } from "lucide-react";
 
@@ -12,6 +12,7 @@ interface TopicsInputProps {
 export default function TopicsInput({ topics, onChange }: TopicsInputProps) {
   const [topicQuery, setTopicQuery] = useState("");
   const [showTopicDropdown, setShowTopicDropdown] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
   const combinedTopics = useMemo(() => {
     return Array.from(new Set([...TOPICS_REGISTRY, ...TECH_STACK_REGISTRY]));
@@ -25,12 +26,36 @@ export default function TopicsInput({ topics, onChange }: TopicsInputProps) {
     return filtered.slice(0, 6);
   }, [topicQuery, topics, combinedTopics]);
 
+  const showCustomOption = useMemo(() => {
+    const trimmed = topicQuery.trim();
+    return !!(
+      trimmed &&
+      !TOPICS_REGISTRY.includes(trimmed) &&
+      !topics.includes(trimmed)
+    );
+  }, [topicQuery, topics]);
+
+  const dropdownOptions = useMemo(() => {
+    const list: Array<{ type: "suggestion" | "custom"; value: string }> = topicSuggestions.map(
+      (topic) => ({ type: "suggestion", value: topic })
+    );
+    if (showCustomOption) {
+      list.push({ type: "custom", value: topicQuery.trim() });
+    }
+    return list;
+  }, [topicSuggestions, showCustomOption, topicQuery]);
+
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [dropdownOptions]);
+
   const addTopic = (topicName: string) => {
     if (topics.length >= 20) return; // Topics limit: max 20 tags
     if (topics.includes(topicName)) return;
 
     onChange([...topics, topicName]);
     setTopicQuery("");
+    setShowTopicDropdown(false);
   };
 
   const removeTopic = (topicName: string) => {
@@ -38,9 +63,31 @@ export default function TopicsInput({ topics, onChange }: TopicsInputProps) {
   };
 
   const handleTopicKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && topicQuery.trim()) {
+    if (e.key === "ArrowDown") {
       e.preventDefault();
-      addTopic(topicQuery.trim());
+      if (!showTopicDropdown) {
+        setShowTopicDropdown(true);
+      } else if (dropdownOptions.length > 0) {
+        setHighlightedIndex((prev) => (prev + 1 < dropdownOptions.length ? prev + 1 : 0));
+      }
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!showTopicDropdown) {
+        setShowTopicDropdown(true);
+      } else if (dropdownOptions.length > 0) {
+        setHighlightedIndex((prev) => (prev - 1 >= 0 ? prev - 1 : dropdownOptions.length - 1));
+      }
+    } else if (e.key === "Enter") {
+      if (showTopicDropdown && highlightedIndex >= 0 && highlightedIndex < dropdownOptions.length) {
+        e.preventDefault();
+        addTopic(dropdownOptions[highlightedIndex].value);
+      } else if (topicQuery.trim()) {
+        e.preventDefault();
+        addTopic(topicQuery.trim());
+      }
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setShowTopicDropdown(false);
     }
   };
 
@@ -95,34 +142,47 @@ export default function TopicsInput({ topics, onChange }: TopicsInputProps) {
           }
         />
 
-        {showTopicDropdown && (topicSuggestions.length > 0 || topicQuery.trim()) && (
+         {showTopicDropdown && topics.length < 20 && (topicSuggestions.length > 0 || showCustomOption) && (
           <div className="absolute left-0 right-0 z-40 mt-1 border border-white/[0.08] bg-[#141414] max-h-40 overflow-y-auto rounded-none shadow-2xl custom-scrollbar">
-            {topicSuggestions.map((topic) => (
-              <button
-                key={topic}
-                type="button"
-                onMouseDown={() => addTopic(topic)}
-                className="w-full text-left px-4 py-2 text-xs text-white/80 hover:bg-white/[0.05] hover:text-white flex items-center justify-between cursor-pointer border-b border-white/[0.04] last:border-b-0 font-mono"
-              >
-                <span>{topic}</span>
-                <span className="font-mono text-[9px] text-neon uppercase tracking-wider">
-                  + add
-                </span>
-              </button>
-            ))}
+            {topicSuggestions.map((topic, index) => {
+              const isHighlighted = index === highlightedIndex;
+              return (
+                <button
+                  key={topic}
+                  type="button"
+                  onMouseDown={() => addTopic(topic)}
+                  className={`w-full text-left px-4 py-2 text-xs flex items-center justify-between cursor-pointer border-b border-white/[0.04] last:border-b-0 font-mono transition ${
+                    isHighlighted
+                      ? "bg-white/[0.1] text-white"
+                      : "text-white/80 hover:bg-white/[0.05] hover:text-white"
+                  }`}
+                >
+                  <span>{topic}</span>
+                  <span className="font-mono text-[9px] text-neon uppercase tracking-wider">
+                    + add
+                  </span>
+                </button>
+              );
+            })}
 
-            {topicQuery.trim() &&
-              !TOPICS_REGISTRY.includes(topicQuery.trim()) &&
-              !topics.includes(topicQuery.trim()) && (
+            {showCustomOption && (() => {
+              const customIndex = topicSuggestions.length;
+              const isHighlighted = customIndex === highlightedIndex;
+              return (
                 <button
                   type="button"
                   onMouseDown={() => addTopic(topicQuery.trim())}
-                  className="w-full text-left px-4 py-2 text-xs text-neon hover:bg-white/[0.05] flex items-center justify-between border-t border-white/[0.08] font-semibold cursor-pointer font-mono"
+                  className={`w-full text-left px-4 py-2 text-xs flex items-center justify-between border-t border-white/[0.08] font-semibold cursor-pointer font-mono transition ${
+                    isHighlighted
+                      ? "bg-white/[0.1] text-white"
+                      : "text-neon hover:bg-white/[0.05]"
+                  }`}
                 >
                   <span>Add custom &quot;{topicQuery.trim()}&quot;</span>
                   <Plus className="size-3.5" />
                 </button>
-              )}
+              );
+            })()}
           </div>
         )}
       </div>
