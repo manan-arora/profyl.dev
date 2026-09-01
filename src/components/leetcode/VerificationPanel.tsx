@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Copy, Check } from "lucide-react";
 import { generateLeetcodeVerificationTokenAction, verifyLeetcodeOwnershipAction } from "@/app/onboarding/actions";
 import { toast } from "sonner";
+import { sanitizeClientError } from "@/lib/errors/safe-error";
 
 interface VerificationPanelProps {
   onVerify?: () => void;
@@ -34,11 +35,16 @@ export function VerificationPanel({ onVerify }: VerificationPanelProps) {
 
     setIsGenerating(true);
     try {
-      const generatedToken = await generateLeetcodeVerificationTokenAction(trimmed);
-      setToken(generatedToken);
+      const res = await generateLeetcodeVerificationTokenAction(trimmed);
+      if (res.success && res.token) {
+        setToken(res.token);
+      } else {
+        toast.error(res.error || "Failed to generate token. Please try again.");
+      }
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Failed to generate token. Please try again.";
-      toast.error(message);
+      toast.error(
+        sanitizeClientError(error, "Failed to generate token. Please try again.")
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -64,18 +70,24 @@ export function VerificationPanel({ onVerify }: VerificationPanelProps) {
 
     setIsVerifying(true);
     try {
-      await verifyLeetcodeOwnershipAction(trimmed);
-      toast.success("LeetCode account verified successfully!");
-      if (onVerify) {
-        onVerify();
+      const res = await verifyLeetcodeOwnershipAction(trimmed);
+      if (res.success) {
+        toast.success("LeetCode account verified successfully!");
+        if (onVerify) {
+          onVerify();
+        }
+      } else {
+        toast.error(res.error || "Verification failed. Please try again.");
       }
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Verification failed. Please try again.";
-      toast.error(message);
+      toast.error(
+        sanitizeClientError(error, "Verification failed. Please try again.")
+      );
     } finally {
       setIsVerifying(false);
     }
   };
+
 
   return (
     <div>

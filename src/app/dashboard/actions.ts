@@ -338,7 +338,7 @@ export async function retryDerivedDataPipelineAction() {
 
     return {
       success: false,
-      error: error.message || "An unexpected error occurred during retry.",
+      error: "An unexpected error occurred during retry. Please try again.",
     };
   }
 }
@@ -388,7 +388,8 @@ export async function checkDashboardFreshnessAction() {
     return {
       success: false,
       error:
-        error.message || "An unexpected error occurred during freshness check.",
+        "An unexpected error occurred during freshness check. Please try again.",
     };
   }
 }
+

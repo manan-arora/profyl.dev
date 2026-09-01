@@ -19,6 +19,7 @@ import {
 } from "@/app/dashboard/actions";
 import { toast } from "sonner";
 import { SaveProcessingModal } from "./SaveProcessingModal";
+import { sanitizeClientError } from "@/lib/errors/safe-error";
 
 export interface DashboardUser {
   id: string;
@@ -566,15 +567,18 @@ export function DashboardProvider({
       toast.success("Analytics and AI insights synchronized successfully!");
       setSaveStatus("idle");
     } catch (error: any) {
-      toast.error(
-        error.message || "An unexpected error occurred during retry.",
+      const safeMessage = sanitizeClientError(
+        error,
+        "An unexpected error occurred during retry. Please try again.",
       );
+      toast.error(safeMessage);
       setProcessingState("failed");
-      if (error.message?.includes("GitHub access needs to be reconnected")) {
+      if (error?.message?.includes("GitHub access needs to be reconnected")) {
         setProcessingError(error.message);
       }
     }
   };
+
 
   return (
     <DashboardContext.Provider

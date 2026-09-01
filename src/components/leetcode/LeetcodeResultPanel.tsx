@@ -64,6 +64,11 @@ export function PreparationLoader() {
           </motion.p>
         </AnimatePresence>
       </div>
+
+      {/* Subdued time expectation helper text */}
+      <p className="mt-3.5 text-[12px] text-white/45 font-sans tracking-normal font-normal">
+        This may take a minute or two.
+      </p>
     </div>
   );
 }

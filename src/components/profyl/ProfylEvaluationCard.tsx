@@ -120,7 +120,7 @@ export function ProfylEvaluationCard({ data }: { data: ProfylPageData }) {
                           className="inline-flex items-center text-neon font-mono text-[10px] uppercase tracking-wider hover:opacity-85 transition-opacity"
                           onClick={() => setActivePopover(null)}
                         >
-                          Learn how Profyl Rating works →
+                          Learn how Profyl Score works →
                         </Link>
                       </div>
                     </div>

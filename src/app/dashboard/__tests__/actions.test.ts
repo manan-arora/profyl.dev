@@ -404,7 +404,9 @@ describe("Dashboard Save/Publish Action", () => {
       const result = await retryDerivedDataPipelineAction();
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe("Internal API timeout");
+      expect(result.error).toBe(
+        "An unexpected error occurred during retry. Please try again.",
+      );
     });
   });
 });

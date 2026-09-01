@@ -7,6 +7,8 @@ import { saveFeaturedProjectsAction } from "@/app/onboarding/actions";
 import { toast } from "sonner";
 import { OnboardingLeetcodeModal } from "@/components/leetcode/OnboardingLeetcodeModal";
 
+import { sanitizeClientError } from "@/lib/errors/safe-error";
+
 interface OnboardingClientProps {
   repositories: Repo[];
   resumeAtLeetcode?: boolean; // Determines if user is continuing onboarding from LeetCode recommendation step
@@ -32,18 +34,29 @@ export default function OnboardingClient({
 
     startTransition(async () => {
       try {
-        await saveFeaturedProjectsAction(selectedRepositoryIds);
+        const res = await saveFeaturedProjectsAction(selectedRepositoryIds);
 
-        toast.success("Featured projects saved successfully");
-        setIsModalOpen(true);
-      } catch {
-        const message = "Unable to save featured projects. Please try again.";
+        if (res.success) {
+          toast.success("Featured projects saved successfully");
+          setIsModalOpen(true);
+        } else {
+          const message =
+            res.error || "Unable to save featured projects. Please try again.";
+          setError(message);
+          toast.error(message);
+        }
+      } catch (err: unknown) {
+        const message = sanitizeClientError(
+          err,
+          "Unable to save featured projects. Please try again.",
+        );
 
         setError(message);
         toast.error(message);
       }
     });
   };
+
 
   // Note: LeetCode verification is now a mandatory step. Skipping is not allowed.
 

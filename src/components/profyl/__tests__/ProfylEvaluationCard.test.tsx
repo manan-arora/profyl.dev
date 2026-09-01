@@ -127,7 +127,7 @@ describe("ProfylEvaluationCard Component", () => {
     expect(screen.getByText(/A single rating built from four signals/i)).toBeInTheDocument();
     
     // Check link is present and points to correct section
-    const link = screen.getByRole("link", { name: /Learn how Profyl Rating works/i });
+    const link = screen.getByRole("link", { name: /Learn how Profyl Score works/i });
     expect(link).toBeInTheDocument();
     expect(link.getAttribute("href")).toBe("/docs/scoring#profyl-rating");
 

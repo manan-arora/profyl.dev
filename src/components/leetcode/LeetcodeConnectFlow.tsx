@@ -31,13 +31,19 @@ export function LeetcodeConnectFlow({
   const executePreparation = useCallback(async () => {
     setBackendState("pending");
     try {
-      await completeOnboardingPreparationAction();
-      setBackendState("success");
+      const res = await completeOnboardingPreparationAction();
+      if (res.success) {
+        setBackendState("success");
+      } else {
+        console.error("Onboarding preparation failed:", res.error);
+        setBackendState("failed");
+      }
     } catch (error: unknown) {
       console.error("Onboarding preparation failed:", error);
       setBackendState("failed");
     }
   }, []);
+
 
   // Trigger preparation workflow automatically on mount if already verified
   useEffect(() => {

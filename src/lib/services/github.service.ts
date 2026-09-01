@@ -161,7 +161,7 @@ async function syncGithub(userId: string): Promise<SyncGithubResult> {
             },
         });
 
-        // Sync user profile name (not overwriting if already populated)
+        // Sync user profile name and bio (not overwriting if already populated)
         const existingProfile = await tx.profile.findUnique({
             where: { userId },
         });
@@ -178,6 +178,7 @@ async function syncGithub(userId: string): Promise<SyncGithubResult> {
                 data: {
                     userId,
                     name: profile.name ?? null,
+                    bio: profile.bio ?? null,
                 },
             });
         }

@@ -124,11 +124,12 @@ describe("githubService.syncGithub", () => {
       },
     });
 
-    // Check Profile name creation
+    // Check Profile name and bio creation
     expect(prisma.profile.create).toHaveBeenCalledWith({
       data: {
         userId: "user_123",
         name: "Test User",
+        bio: "bio",
       },
     });
 
@@ -250,6 +251,77 @@ describe("githubService.syncGithub", () => {
     });
 
     vi.mocked(githubClient.getGithubRepositories).mockResolvedValue([]);
+    // Mock existing profile with both name and bio populated
+    vi.mocked(prisma.profile.findUnique).mockResolvedValue({
+      id: "profile_1",
+      userId: "user_123",
+      name: "Existing Name",
+      bio: "Existing Bio",
+      headline: null,
+      currentRole: null,
+      currentCompany: null,
+      yearsExperience: null,
+      college: null,
+      graduationYear: null,
+      techStack: null,
+      linkedinUrl: null,
+      portfolioUrl: null,
+      resumeUrl: null,
+      branch: null,
+      degree: null,
+      location: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    await githubService.syncGithub("user_123");
+
+    // Profile.update should not be called to overwrite name or bio
+    expect(prisma.profile.update).not.toHaveBeenCalled();
+    expect(prisma.profile.create).not.toHaveBeenCalled();
+  });
+
+  it("should not overwrite or sync profile bio on subsequent syncs even if existing profile bio is null", async () => {
+    vi.mocked(oauth.getGithubAccessToken).mockResolvedValue("mock-token");
+    vi.mocked(prisma.profile.findUnique).mockResolvedValue({
+      id: "profile_1",
+      userId: "user_123",
+      name: "Existing Name",
+      bio: null,
+      headline: null,
+      currentRole: null,
+      currentCompany: null,
+      yearsExperience: null,
+      college: null,
+      graduationYear: null,
+      techStack: null,
+      linkedinUrl: null,
+      portfolioUrl: null,
+      resumeUrl: null,
+      branch: null,
+      degree: null,
+      location: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    vi.mocked(githubClient.getGithubProfile).mockResolvedValue({
+      id: 12345,
+      login: "testuser",
+      name: "Test User",
+      avatar_url: "https://avatar.url",
+      bio: "New GitHub Bio",
+      company: null,
+      location: null,
+      blog: null,
+      public_repos: 1,
+      followers: 10,
+      following: 5,
+      created_at: "2020-01-01T00:00:00Z",
+      updated_at: "2020-01-01T00:00:00Z",
+    });
+
+    vi.mocked(githubClient.getGithubRepositories).mockResolvedValue([]);
     vi.mocked(githubClient.getGithubContributions).mockResolvedValue({
       viewer: {
         login: "testuser",
@@ -265,7 +337,6 @@ describe("githubService.syncGithub", () => {
 
     await githubService.syncGithub("user_123");
 
-    // Profile.update should not be called to overwrite the name
     expect(prisma.profile.update).not.toHaveBeenCalled();
     expect(prisma.profile.create).not.toHaveBeenCalled();
   });
