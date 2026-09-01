@@ -36,9 +36,12 @@ export default async function OnboardingPage() {
    * This future-proofs the page if repository data is needed by components when resuming,
    * and respects the existing caching TTL inside githubService.syncGithub.
    */
-  await githubService.syncGithub(user.id);
-
-  console.log("Sync completed");
+  try {
+    await githubService.syncGithub(user.id);
+    console.log("Sync completed");
+  } catch (err) {
+    console.warn("[Onboarding] Non-fatal error syncing GitHub data during page load:", err);
+  }
 
   const repositories = await projectService.getAvailableProjects(user.id);
 
