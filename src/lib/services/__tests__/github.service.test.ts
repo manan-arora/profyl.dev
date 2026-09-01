@@ -28,6 +28,9 @@ vi.mock("@/lib/prisma", () => ({
       upsert: vi.fn(),
     },
     repository: {
+      findMany: vi.fn().mockResolvedValue([]),
+      createMany: vi.fn(),
+      update: vi.fn(),
       upsert: vi.fn(),
       deleteMany: vi.fn(),
     },
@@ -42,9 +45,10 @@ vi.mock("@/lib/prisma", () => ({
 describe("githubService.syncGithub", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(prisma.repository.findMany).mockResolvedValue([]);
   });
 
-  it("should sync repositories and correctly persist the defaultBranch field", async () => {
+  it("should sync repositories and correctly persist the defaultBranch field via createMany for new repos", async () => {
     vi.mocked(oauth.getGithubAccessToken).mockResolvedValue("mock-token");
     vi.mocked(githubClient.getGithubReadme).mockResolvedValue("## Mock README");
     vi.mocked(prisma.profile.findUnique).mockResolvedValue(null);
@@ -128,25 +132,19 @@ describe("githubService.syncGithub", () => {
       },
     });
 
-    // Check repository upsert maps defaultBranch and readme
-    expect(prisma.repository.upsert).toHaveBeenCalledWith({
-      where: { githubRepoId: "999" },
-      update: expect.objectContaining({
-        name: "test-repo",
-        defaultBranch: "develop", // Verifies custom default branch mapping
-        stars: 42,
-        forks: 7,
-        readme: "## Mock README",
-      }),
-      create: expect.objectContaining({
-        userId: "user_123",
-        githubRepoId: "999",
-        name: "test-repo",
-        defaultBranch: "develop",
-        stars: 42,
-        forks: 7,
-        readme: "## Mock README",
-      }),
+    // Check repository createMany maps defaultBranch and readme for new repos
+    expect(prisma.repository.createMany).toHaveBeenCalledWith({
+      data: [
+        expect.objectContaining({
+          userId: "user_123",
+          githubRepoId: "999",
+          name: "test-repo",
+          defaultBranch: "develop", // Verifies custom default branch mapping
+          stars: 42,
+          forks: 7,
+          readme: "## Mock README",
+        }),
+      ],
     });
   });
 
@@ -214,15 +212,13 @@ describe("githubService.syncGithub", () => {
 
     expect(result.repositoriesSynced).toBe(1);
 
-    // Check repository upsert maps defaultBranch and readme is null due to failure
-    expect(prisma.repository.upsert).toHaveBeenCalledWith({
-      where: { githubRepoId: "999" },
-      update: expect.objectContaining({
-        readme: null,
-      }),
-      create: expect.objectContaining({
-        readme: null,
-      }),
+    // Check repository createMany maps readme as null due to failure
+    expect(prisma.repository.createMany).toHaveBeenCalledWith({
+      data: [
+        expect.objectContaining({
+          readme: null,
+        }),
+      ],
     });
   });
 
@@ -321,5 +317,86 @@ describe("githubService.syncGithub", () => {
     const error = await githubService.syncGithub("user_123").catch((e) => e);
     expect(error).toBeInstanceOf(Error);
     expect(error).not.toBeInstanceOf(GitHubAuthError);
+  });
+
+  it("should update existing repositories using repository.update instead of createMany", async () => {
+    vi.mocked(oauth.getGithubAccessToken).mockResolvedValue("mock-token");
+    vi.mocked(githubClient.getGithubReadme).mockResolvedValue("## Updated README");
+    vi.mocked(prisma.profile.findUnique).mockResolvedValue(null);
+
+    // Existing repository in DB
+    vi.mocked(prisma.repository.findMany).mockResolvedValue([
+      { id: "repo_db_id_123", githubRepoId: "999" } as any,
+    ]);
+
+    vi.mocked(githubClient.getGithubProfile).mockResolvedValue({
+      id: 12345,
+      login: "testuser",
+      name: "Test User",
+      avatar_url: "https://avatar.url",
+      bio: "bio",
+      company: null,
+      location: null,
+      blog: null,
+      public_repos: 1,
+      followers: 10,
+      following: 5,
+      created_at: "2020-01-01T00:00:00Z",
+      updated_at: "2020-01-01T00:00:00Z",
+    });
+
+    vi.mocked(githubClient.getGithubRepositories).mockResolvedValue([
+      {
+        id: 999,
+        name: "test-repo",
+        full_name: "testuser/test-repo",
+        description: "Updated description",
+        private: false,
+        fork: false,
+        archived: false,
+        html_url: "https://github.com/testuser/test-repo",
+        homepage: null,
+        language: "TypeScript",
+        stargazers_count: 50,
+        forks_count: 8,
+        default_branch: "main",
+        topics: ["react"],
+        created_at: "2025-01-01T00:00:00Z",
+        updated_at: "2025-01-02T00:00:00Z",
+        pushed_at: "2025-01-02T00:00:00Z",
+      },
+    ]);
+
+    vi.mocked(githubClient.getGithubContributions).mockResolvedValue({
+      viewer: {
+        login: "testuser",
+        contributionsCollection: {
+          contributionCalendar: {
+            totalContributions: 100,
+            weeks: [],
+          },
+        },
+      },
+    });
+
+    vi.mocked(githubClient.getGithubMergedPRCount).mockResolvedValue(5);
+    vi.mocked(githubClient.getGithubRepositoryLanguages).mockResolvedValue({});
+
+    await githubService.syncGithub("user_123");
+
+    // Should NOT call createMany
+    expect(prisma.repository.createMany).not.toHaveBeenCalled();
+
+    // Should call repository.update targeting existing DB record ID
+    expect(prisma.repository.update).toHaveBeenCalledWith({
+      where: { id: "repo_db_id_123" },
+      data: expect.objectContaining({
+        name: "test-repo",
+        description: "Updated description",
+        stars: 50,
+        forks: 8,
+        readme: "## Updated README",
+      }),
+    });
   });
 });

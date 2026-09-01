@@ -194,45 +194,73 @@ async function syncGithub(userId: string): Promise<SyncGithubResult> {
             },
         });
 
-        // Upsert eligible repositories
-        await Promise.all(
-            eligibleRepositories.map((repo) => {
-                const repositoryData = {
-                    name: repo.name,
-                    description: repo.description,
-
-                    stars: repo.stargazers_count,
-                    forks: repo.forks_count,
-
-                    primaryLanguage: repo.language,
-
-                    topics: repo.topics,
-
-                    githubUrl: repo.html_url,
-                    homepageUrl: repo.homepage,
-                    defaultBranch: repo.default_branch || "main",
-
-                    isFork: repo.fork,
-                    isArchived: repo.archived,
-
-                    lastSyncedAt: syncedAt,
-                    githubUpdatedAt: new Date(repo.updated_at),
-                    readme: readmes.get(String(repo.id)) ?? null,
-                };
-
-                return tx.repository.upsert({
-                    where: {
-                        githubRepoId: String(repo.id),
-                    },
-                    update: repositoryData,
-                    create: {
-                        userId,
-                        githubRepoId: String(repo.id),
-                        ...repositoryData,
-                    },
-                });
-            })
+        // Fetch existing repositories for the user to optimize persistence round-trips
+        const existingRepos = await tx.repository.findMany({
+            where: { userId },
+            select: {
+                id: true,
+                githubRepoId: true,
+            },
+        });
+        const existingRepoMap = new Map(
+            existingRepos.map((r) => [r.githubRepoId, r.id])
         );
+
+        const reposToCreate: Prisma.RepositoryCreateManyInput[] = [];
+        const updatePromises: Promise<unknown>[] = [];
+
+        for (const repo of eligibleRepositories) {
+            const githubRepoIdStr = String(repo.id);
+            const existingId = existingRepoMap.get(githubRepoIdStr);
+
+            const repositoryData = {
+                name: repo.name,
+                description: repo.description,
+
+                stars: repo.stargazers_count,
+                forks: repo.forks_count,
+
+                primaryLanguage: repo.language,
+
+                topics: repo.topics ?? Prisma.DbNull,
+
+                githubUrl: repo.html_url,
+                homepageUrl: repo.homepage,
+                defaultBranch: repo.default_branch || "main",
+
+                isFork: repo.fork,
+                isArchived: repo.archived,
+
+                lastSyncedAt: syncedAt,
+                githubUpdatedAt: new Date(repo.updated_at),
+                readme: readmes.get(githubRepoIdStr) ?? null,
+            };
+
+            if (!existingId) {
+                reposToCreate.push({
+                    userId,
+                    githubRepoId: githubRepoIdStr,
+                    ...repositoryData,
+                });
+            } else {
+                updatePromises.push(
+                    tx.repository.update({
+                        where: { id: existingId },
+                        data: repositoryData,
+                    })
+                );
+            }
+        }
+
+        if (reposToCreate.length > 0) {
+            await tx.repository.createMany({
+                data: reposToCreate,
+            });
+        }
+
+        if (updatePromises.length > 0) {
+            await Promise.all(updatePromises);
+        }
 
         // Delete stale repositories (same user, githubRepoId not in eligibleGithubRepoIds)
         await tx.repository.deleteMany({
