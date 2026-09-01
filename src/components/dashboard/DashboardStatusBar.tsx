@@ -11,7 +11,7 @@ export default function DashboardStatusBar() {
   const isRefreshing = refreshState === "refreshing";
 
   return (
-    <div className="mx-auto max-w-[1200px] w-full px-6 lg:px-10 pt-4 shrink-0 select-none">
+    <div className="mx-auto max-w-[1200px] w-full px-6 lg:px-10 pb-4 pt-1 shrink-0 select-none">
       <div
         className={`flex items-center gap-3 py-2 px-4 border text-xs font-mono rounded-none ${
           isRefreshing

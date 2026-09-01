@@ -43,11 +43,11 @@ export default function DashboardShell({
 
         {/* Scrollable Main Content wrapper */}
         <div className="lg:pl-[240px] flex-1 flex flex-col min-w-0 min-h-screen">
-          {/* Sticky Topbar header */}
-          <Topbar onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)} />
-
-          {/* Persistent status bar for active/failed refresh notifications */}
-          <DashboardStatusBar />
+          {/* Sticky Topbar header & status bar wrapper */}
+          <div className="sticky top-0 z-20 bg-[#0D0D0D]/85 backdrop-blur-md border-b border-white/[0.08]">
+            <Topbar onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)} />
+            <DashboardStatusBar />
+          </div>
 
           {/* Render children views (tabs) */}
           <main className="flex-1 relative overflow-hidden bg-[#0D0D0D]">

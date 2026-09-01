@@ -25,7 +25,7 @@ export default function Topbar({ onToggleSidebar }: TopbarProps) {
   }, [localProfile, localProjects, user]);
 
   return (
-    <header className="sticky top-0 z-20 h-16 border-b border-white/[0.08] bg-[#0D0D0D]/85 backdrop-blur-md select-none">
+    <header className="h-16 select-none">
       <div className="h-full px-4 lg:px-10 flex items-center justify-between gap-4">
         {/* Breadcrumbs / Page Title */}
         <div className="flex items-center gap-2.5 min-w-0">
