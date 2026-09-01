@@ -402,8 +402,3 @@ Profyl explores a different model: a developer profile that is built from observ
 
 The interesting engineering challenge is turning heterogeneous external data and repositories with different structures and technology stacks into a consistent, explainable representation. Profyl's repository analysis and technology detection are designed to work reliably across a wide range of project layouts and ecosystems, without making an LLM responsible for the parts of the system that should remain deterministic.
 
----
-
-## License
-
-See the repository license for usage and contribution terms.
