@@ -22,14 +22,10 @@ export async function getGithubAccessToken(userId: string): Promise<string> {
 
   const client = await clerkClient();
 
-  console.log("Internal user:", user);
-
   const oauthAccessTokens = await client.users.getUserOauthAccessToken(
     user.clerkId,
     "github",
   );
-
-  console.log(oauthAccessTokens);
 
   const tokenObj = oauthAccessTokens.data?.[0];
   const accessToken = tokenObj?.token;

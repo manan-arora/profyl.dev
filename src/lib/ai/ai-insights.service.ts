@@ -73,18 +73,19 @@ export async function generateAndPersistAIInsights(
     where: { userId },
   });
 
-  // 4. Validate reuse criteria (exists, matching hash, matching prompt version, within 12-hour SWR window)
-  const now = new Date();
-  const twelveHoursAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000);
-
+  // 4. Validate reuse criteria (exists, matching sourceHash, promptVersion, modelVersion, and valid output)
   const isReusable =
     persisted &&
     persisted.sourceHash === sourceHash &&
     persisted.promptVersion === PROMPT_VERSION &&
-    persisted.generatedAt &&
-    persisted.generatedAt >= twelveHoursAgo;
+    persisted.modelVersion === GEMINI_MODEL &&
+    Boolean(persisted.aiSignal) &&
+    Boolean(persisted.aiSummary);
 
   if (isReusable) {
+    if (process.env.NODE_ENV === "development" || process.env.DEBUG_TIMING === "true") {
+      console.log(`[AI Insights] Reusing existing AI output for user ${userId} (sourceHash matched: ${sourceHash.substring(0, 8)})`);
+    }
     return persisted;
   }
 
@@ -95,6 +96,7 @@ export async function generateAndPersistAIInsights(
   const userFeaturedRepoIds = new Set(sources.featuredRepositories.map((repo) => repo.id));
 
   // 7. Persist AI output and project summaries transactionally
+  const now = new Date();
   const [updatedInsight] = await prisma.$transaction([
     prisma.aIInsights.upsert({
       where: { userId },

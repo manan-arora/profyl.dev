@@ -21,9 +21,7 @@ export async function handleUserUpdated(data: UserJSON) {
     `${data.first_name || ""} ${data.last_name || ""}`.trim() || null;
   const avatarUrl = data.image_url || null;
 
-  console.log(
-    `[Clerk Webhook] Updating user: ${clerkId} (New Email: ${email})`,
-  );
+  console.log(`[Clerk Webhook] Updating user: ${clerkId}`);
 
   // Extract GitHub OAuth identity details from external_accounts
   const githubAccount = data.external_accounts.find(

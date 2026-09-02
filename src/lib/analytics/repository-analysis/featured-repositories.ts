@@ -45,21 +45,18 @@ export async function analyzeFeaturedRepositories(
     },
   });
 
-  const repositories: RepositoryAnalysisResult[] = [];
-
-  for (const repo of featuredRepos) {
-    const { owner, name } = parseGithubUrl(repo.githubUrl);
-
-    const analysis = await analyzeRepository({
-      repositoryId: repo.id,
-      owner,
-      repo: name || repo.name,
-      accessToken,
-      branch: repo.defaultBranch || "main",
-    });
-
-    repositories.push(analysis);
-  }
+  const repositories = await Promise.all(
+    featuredRepos.map((repo) => {
+      const { owner, name } = parseGithubUrl(repo.githubUrl);
+      return analyzeRepository({
+        repositoryId: repo.id,
+        owner,
+        repo: name || repo.name,
+        accessToken,
+        branch: repo.defaultBranch || "main",
+      });
+    })
+  );
 
   const totalRepositories = repositories.length;
   const analyzedRepositories = repositories.filter(

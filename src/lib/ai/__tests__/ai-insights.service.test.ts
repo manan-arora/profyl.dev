@@ -197,7 +197,7 @@ describe("generateAndPersistAIInsights service", () => {
     expect(prisma.$transaction).toHaveBeenCalled();
   });
 
-  it("5. should regenerate when insight is outside 12-hour SWR window", async () => {
+  it("5. should reuse existing AI output when sourceHash matches even if outside 12-hour window", async () => {
     const thirteenHoursAgo = new Date(Date.now() - 13 * 60 * 60 * 1000);
     const cachedRecord = {
       id: "insight_123",
@@ -209,17 +209,18 @@ describe("generateAndPersistAIInsights service", () => {
       sourceHash: currentHash,
       promptVersion: PROMPT_VERSION,
       modelVersion: GEMINI_MODEL,
-      generatedAt: thirteenHoursAgo, // expired
+      generatedAt: thirteenHoursAgo,
       createdAt: thirteenHoursAgo,
       updatedAt: thirteenHoursAgo,
     };
 
-    vi.mocked(prisma.aIInsights.findUnique).mockResolvedValue(cachedRecord);
+    vi.mocked(prisma.aIInsights.findUnique).mockResolvedValue(cachedRecord as any);
 
-    await generateAndPersistAIInsights(mockUserId, mockAnalyticsResult);
+    const result = await generateAndPersistAIInsights(mockUserId, mockAnalyticsResult);
 
-    expect(generateAIOutput).toHaveBeenCalled();
-    expect(prisma.$transaction).toHaveBeenCalled();
+    expect(generateAIOutput).not.toHaveBeenCalled();
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+    expect(result).toEqual(cachedRecord);
   });
 
   it("6. should propagate generator failure and not write to DB", async () => {

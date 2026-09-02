@@ -1,5 +1,5 @@
 import { getProfylPageData } from "@/lib/services/profyl-page.service";
-import { ensureProfileDataFresh } from "@/lib/services/freshness.service";
+import { scheduleBackgroundRevalidation } from "@/lib/services/freshness.service";
 import { ProfylPageData } from "@/types/profyl-page";
 
 const inFlightRefreshes = new Map<string, Promise<{ data: ProfylPageData; refreshed: boolean }>>();
@@ -12,14 +12,16 @@ export function refreshPublicProfile(userId: string): Promise<{ data: ProfylPage
   }
 
   const refresh = (async () => {
-    const refreshed = await ensureProfileDataFresh(userId);
-
+    // 1. Fetch current cached DB read model immediately
     const data = await getProfylPageData({ userId });
     if (!data) {
       throw new Error("Profile data unavailable");
     }
 
-    return { data, refreshed };
+    // 2. Schedule non-blocking background revalidation safely off the request stream
+    scheduleBackgroundRevalidation(userId);
+
+    return { data, refreshed: false };
   })();
 
   const trackedRefresh = refresh.then(

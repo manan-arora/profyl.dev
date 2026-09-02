@@ -29,8 +29,6 @@ export default async function OnboardingPage() {
     redirect("/dashboard");
   }
 
-  console.log("Loading onboarding for", user.id);
-
   /**
    * Keep a single unified data fetching execution path for both new and resuming users.
    * This future-proofs the page if repository data is needed by components when resuming,
@@ -38,7 +36,6 @@ export default async function OnboardingPage() {
    */
   try {
     await githubService.syncGithub(user.id);
-    console.log("Sync completed");
   } catch (err) {
     console.warn("[Onboarding] Non-fatal error syncing GitHub data during page load:", err);
   }

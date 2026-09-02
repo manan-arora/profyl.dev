@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getProfylPageData } from "@/lib/services/profyl-page.service";
-import { ensureProfileDataFresh } from "../freshness.service";
+import { scheduleBackgroundRevalidation } from "../freshness.service";
 import { refreshPublicProfile } from "../public-profile-refresh.service";
 import { ProfylPageData } from "@/types/profyl-page";
 
@@ -9,7 +9,7 @@ vi.mock("@/lib/services/profyl-page.service", () => ({
 }));
 
 vi.mock("../freshness.service", () => ({
-  ensureProfileDataFresh: vi.fn(),
+  scheduleBackgroundRevalidation: vi.fn(),
 }));
 
 describe("refreshPublicProfile", () => {
@@ -20,34 +20,20 @@ describe("refreshPublicProfile", () => {
     vi.mocked(getProfylPageData).mockResolvedValue(profileData);
   });
 
-  it("shares one refresh operation for concurrent requests", async () => {
-    let resolveFreshness: (() => void) | undefined;
-    vi.mocked(ensureProfileDataFresh).mockReturnValue(
-      new Promise<boolean>((resolve) => {
-        resolveFreshness = () => resolve(true);
-      }),
-    );
+  it("returns cached data immediately and schedules background revalidation", async () => {
+    const result = await refreshPublicProfile("user_123");
 
+    expect(result).toEqual({ data: profileData, refreshed: false });
+    expect(getProfylPageData).toHaveBeenCalledWith({ userId: "user_123" });
+    expect(scheduleBackgroundRevalidation).toHaveBeenCalledWith("user_123");
+  });
+
+  it("shares in-flight refresh operation for concurrent calls", async () => {
     const firstRefresh = refreshPublicProfile("user_123");
     const secondRefresh = refreshPublicProfile("user_123");
 
     expect(firstRefresh).toBe(secondRefresh);
-    expect(ensureProfileDataFresh).toHaveBeenCalledTimes(1);
-
-    resolveFreshness?.();
-    await expect(firstRefresh).resolves.toEqual({ data: profileData, refreshed: true });
-    expect(getProfylPageData).toHaveBeenCalledTimes(1);
-  });
-
-  it("removes failed operations so a later request can retry", async () => {
-    vi.mocked(ensureProfileDataFresh)
-      .mockRejectedValueOnce(new Error("refresh failed"))
-      .mockResolvedValueOnce(true);
-
-    await expect(refreshPublicProfile("user_123")).rejects.toThrow(
-      "refresh failed",
-    );
-    await expect(refreshPublicProfile("user_123")).resolves.toEqual({ data: profileData, refreshed: true });
-    expect(ensureProfileDataFresh).toHaveBeenCalledTimes(2);
+    const result = await firstRefresh;
+    expect(result).toEqual({ data: profileData, refreshed: false });
   });
 });

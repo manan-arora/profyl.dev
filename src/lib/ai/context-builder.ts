@@ -13,6 +13,8 @@ import {
   analyzeLeetcodeCalendar,
 } from "../analytics/calendar-analysis";
 import { LeetcodeContestHistoryItem } from "@/types/leetcode";
+import { getGithubAccessToken } from "@/lib/auth/oauth";
+import { getGithubReadme } from "@/lib/github/client";
 
 export interface EvaluationAIContext {
   profylScore: number | null;
@@ -484,6 +486,7 @@ export function buildAIContext(sources: AIContextSources): AIContext {
 /**
  * Orchestrator database loader that queries all required entities from Prisma
  * and compiles them into the expected sources format.
+ * Concurrent fetching is used for missing repository README files via Promise.all.
  */
 export async function loadAIContextSources(
   userId: string,
@@ -503,6 +506,33 @@ export async function loadAIContextSources(
 
   if (!user) {
     throw new Error(`User not found for ID: ${userId}`);
+  }
+
+  // Concurrently fetch README for any featured repo missing a readme field in DB
+  try {
+    const accessToken = await getGithubAccessToken(userId);
+    if (accessToken) {
+      await Promise.all(
+        featuredRepositories.map(async (repo) => {
+          if (!repo.readme) {
+            try {
+              const cleanUrl = repo.githubUrl.replace(/\/$/, "");
+              const parts = cleanUrl.split("/");
+              const name = parts[parts.length - 1] || repo.name;
+              const owner = parts[parts.length - 2] || "";
+              if (owner && name) {
+                const readmeContent = await getGithubReadme(accessToken, owner, name);
+                repo.readme = readmeContent;
+              }
+            } catch {
+              // Missing README is safely ignored (defaults to null)
+            }
+          }
+        })
+      );
+    }
+  } catch {
+    // If access token fetch fails, proceed without fetching new READMEs
   }
 
   return {

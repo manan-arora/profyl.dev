@@ -9,6 +9,7 @@ import {
 import { scanRepository, ScanRepositoryOptions } from "./scanner";
 import { getParser } from "./parser-registry";
 import { detectTechnologies } from "./technologies/technology-detector";
+import { mapWithConcurrency } from "@/lib/utils/concurrency";
 
 export interface ParseManifestOptions {
   manifest: DiscoveredManifest;
@@ -111,7 +112,7 @@ const isGradleManifest = (manifest: DiscoveredManifest): boolean =>
   manifest.type === "build.gradle" || manifest.type === "build.gradle.kts";
 
 /**
- * Parses every discovered manifest in discovery order.
+ * Parses every discovered manifest in discovery order with bounded concurrency (max 4 concurrent fetches).
  * Fetches one shared root Gradle catalog when at least one Gradle manifest
  * requires it, then passes that content to each Gradle parser.
  */
@@ -134,21 +135,16 @@ export async function analyzeManifests({
         )
       : undefined;
 
-  const parsedManifests: ParsedManifest[] = [];
-  for (const manifest of manifests) {
-    parsedManifests.push(
-      await parseManifest({
-        manifest,
-        owner,
-        repo,
-        accessToken,
-        branch,
-        gradleVersionCatalogContent,
-      }),
-    );
-  }
-
-  return parsedManifests;
+  return mapWithConcurrency(manifests, 4, (manifest) =>
+    parseManifest({
+      manifest,
+      owner,
+      repo,
+      accessToken,
+      branch,
+      gradleVersionCatalogContent,
+    })
+  );
 }
 
 export type AnalyzeRepositoryOptions = ScanRepositoryOptions;

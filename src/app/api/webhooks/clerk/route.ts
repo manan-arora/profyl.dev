@@ -24,7 +24,6 @@ export async function POST(req: NextRequest) {
     eventType !== "user.updated" &&
     eventType !== "user.deleted"
   ) {
-    console.log(`[Clerk Webhook] Ignoring unhandled event: ${eventType}`);
     return new Response("Event ignored", { status: 200 });
   }
 
