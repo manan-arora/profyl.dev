@@ -6,6 +6,8 @@ import {
   GithubSearchIssuesResponse,
   GithubRepositoryTree,
   GithubFileContentResponse,
+  GraphQLRepositoriesData,
+  GraphQLRepositoryNode,
 } from "@/types/github";
 import { GitHubAuthError } from "@/lib/errors/GitHubAuthError";
 
@@ -28,6 +30,59 @@ query {
             weekday
           }
         }
+      }
+    }
+  }
+}
+`;
+
+const GET_GITHUB_REPOSITORIES_QUERY = `
+query GetUserRepositories($cursor: String) {
+  viewer {
+    repositories(
+      first: 100
+      after: $cursor
+      orderBy: { field: UPDATED_AT, direction: DESC }
+      ownerAffiliations: [OWNER]
+    ) {
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      nodes {
+        databaseId
+        name
+        nameWithOwner
+        description
+        isPrivate
+        isFork
+        isArchived
+        stargazerCount
+        forkCount
+        primaryLanguage {
+          name
+        }
+        languages(first: 10, orderBy: { field: SIZE, direction: DESC }) {
+          edges {
+            size
+            node {
+              name
+            }
+          }
+        }
+        repositoryTopics(first: 10) {
+          nodes {
+            topic {
+              name
+            }
+          }
+        }
+        url
+        homepageUrl
+        defaultBranchRef {
+          name
+        }
+        updatedAt
       }
     }
   }
@@ -76,6 +131,61 @@ export async function getGithubRepositories(
     "/user/repos?per_page=100&sort=updated&direction=desc",
     accessToken,
   );
+}
+
+export async function getGithubRepositoriesGraphQL(
+  accessToken: string,
+): Promise<GraphQLRepositoryNode[]> {
+  const allNodes: GraphQLRepositoryNode[] = [];
+  let hasNextPage = true;
+  let cursor: string | null = null;
+
+  while (hasNextPage) {
+    const response = await fetch(GITHUB_GRAPHQL_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        query: GET_GITHUB_REPOSITORIES_QUERY,
+        variables: { cursor },
+      }),
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new GitHubAuthError(
+          `GitHub API returned ${response.status} ${response.statusText}`,
+          "Your GitHub access needs to be reconnected. Please sign out and sign in with GitHub again.",
+        );
+      }
+      throw new Error(
+        `GitHub GraphQL API request failed with status: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    const result: GithubGraphQLResponse<GraphQLRepositoriesData> =
+      await response.json();
+
+    if (result.errors && result.errors.length > 0) {
+      const errorMessages = result.errors.map((e) => e.message).join("; ");
+      throw new Error(`GitHub GraphQL API returned errors: ${errorMessages}`);
+    }
+
+    if (!result.data || !result.data.viewer || !result.data.viewer.repositories) {
+      throw new Error("GitHub GraphQL API response missing repositories data");
+    }
+
+    const repoData = result.data.viewer.repositories;
+    allNodes.push(...repoData.nodes);
+
+    hasNextPage = repoData.pageInfo.hasNextPage;
+    cursor = repoData.pageInfo.endCursor;
+  }
+
+  return allNodes;
 }
 
 export async function getGithubContributions(

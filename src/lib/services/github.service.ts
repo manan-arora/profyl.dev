@@ -1,25 +1,19 @@
+import { randomUUID } from "crypto";
 import { getGithubAccessToken } from "@/lib/auth/oauth";
 import {
     getGithubContributions,
     getGithubMergedPRCount,
     getGithubProfile,
-    getGithubRepositories,
-    getGithubRepositoryLanguages,
-    getGithubReadme,
+    getGithubRepositoriesGraphQL,
 } from "@/lib/github/client";
 import {
-    aggregateLanguageBytes,
     calculateActiveWeeks,
-    calculateForksEarned,
     calculateLanguageDistribution,
     calculateLongestStreak,
-    calculateStarsEarned,
     normalizeContributionCalendar,
 } from "@/lib/github/normalizers";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
-
-const LANGUAGE_FETCH_CONCURRENCY = 5;
 
 interface SyncGithubResult {
     githubUsername: string;
@@ -31,25 +25,23 @@ interface SyncGithubResult {
  *
  * Flow:
  * 1. Retrieve GitHub OAuth token
- * 2. Fetch profile, repositories, and contribution calendar in parallel
- * 3. Determine eligible repositories
- * 4. Normalize contribution calendar data
- * 5. Persist user and GitHub cache (including total contributions and contribution calendar)
- * 6. Upsert eligible repositories
- * 7. Delete repositories that are no longer eligible
- * 8. Return synchronization summary
+ * 2. Fetch profile, repositories (GraphQL paginated), and contribution calendar in parallel
+ * 3. Determine eligible repositories (public, non-fork, non-archived)
+ * 4. Normalize contribution calendar data and calculate global stats
+ * 5. Aggregate language distribution directly from GraphQL byte counts
+ * 6. Persist user, profile, and GitHub cache in an atomic transaction
+ * 7. Bulk UPSERT repositories in a single O(1) PostgreSQL statement
+ * 8. Atomic delete of stale repositories no longer eligible
+ * 9. Return synchronization summary
  */
 async function syncGithub(userId: string): Promise<SyncGithubResult> {
     const accessToken = await getGithubAccessToken(userId);
 
-    const [profile, allRepositories, contributionsData] = await Promise.all([
+    const [profile, allRepoNodes, contributionsData] = await Promise.all([
         getGithubProfile(accessToken),
-        getGithubRepositories(accessToken),
+        getGithubRepositoriesGraphQL(accessToken),
         getGithubContributions(accessToken),
     ]);
-
-    console.log(profile.login);
-    console.log(allRepositories.length);
 
     const rawCalendar =
         contributionsData.viewer.contributionsCollection.contributionCalendar;
@@ -61,63 +53,34 @@ async function syncGithub(userId: string): Promise<SyncGithubResult> {
 
     const ossPrsMerged = await getGithubMergedPRCount(accessToken, profile.login);
 
-    const eligibleRepositories = allRepositories.filter(
-        (repo) => !repo.private && !repo.fork && !repo.archived
+    const eligibleRepositories = allRepoNodes.filter(
+        (repo) => !repo.isPrivate && !repo.isFork && !repo.isArchived
     );
 
-    const starsEarned = calculateStarsEarned(eligibleRepositories);
-    const forksEarned = calculateForksEarned(eligibleRepositories);
+    const starsEarned = eligibleRepositories.reduce(
+        (sum, repo) => sum + (repo.stargazerCount || 0),
+        0
+    );
+    const forksEarned = eligibleRepositories.reduce(
+        (sum, repo) => sum + (repo.forkCount || 0),
+        0
+    );
 
-    let languageDistribution: Record<string, number> = {};
-    const readmes = new Map<string, string | null>();
-
-    try {
-        if (eligibleRepositories.length > 0) {
-            const languageResponses: Record<string, number>[] = [];
-
-            for (let i = 0; i < eligibleRepositories.length; i += LANGUAGE_FETCH_CONCURRENCY) {
-                const batch = eligibleRepositories.slice(i, i + LANGUAGE_FETCH_CONCURRENCY);
-                const batchResults = await Promise.all(
-                    batch.map(async (repo) => {
-                        const parts = repo.full_name.split("/");
-                        const owner = parts[0] || profile.login;
-                        const repoName = parts[1] || repo.name;
-
-                        const [languages, readme] = await Promise.all([
-                            getGithubRepositoryLanguages(accessToken, owner, repoName).catch((err) => {
-                                console.warn(`Language fetch failed for ${repo.full_name}:`, err);
-                                return {};
-                            }),
-                            getGithubReadme(accessToken, owner, repoName).catch((err) => {
-                                console.warn(`README fetch failed for ${repo.full_name}:`, err);
-                                return null;
-                            })
-                        ]);
-
-                        readmes.set(String(repo.id), readme);
-                        return languages;
-                    })
-                );
-                languageResponses.push(...batchResults);
+    // Aggregate language bytes directly from GraphQL response
+    const languageBytesMap: Record<string, number> = {};
+    for (const repo of eligibleRepositories) {
+        if (repo.languages?.edges) {
+            for (const edge of repo.languages.edges) {
+                if (edge?.node?.name && typeof edge.size === "number") {
+                    const langName = edge.node.name;
+                    languageBytesMap[langName] = (languageBytesMap[langName] || 0) + edge.size;
+                }
             }
-
-            const aggregatedBytes = aggregateLanguageBytes(languageResponses);
-            languageDistribution = calculateLanguageDistribution(aggregatedBytes);
-        }
-    } catch (error) {
-        console.warn("Language fetch failed; preserving existing languageDistribution:", error);
-        const existingCache = await prisma.gitHubCache.findUnique({
-            where: { userId },
-            select: { languageDistribution: true },
-        });
-        if (existingCache?.languageDistribution && typeof existingCache.languageDistribution === "object") {
-            languageDistribution = existingCache.languageDistribution as Record<string, number>;
         }
     }
+    const languageDistribution = calculateLanguageDistribution(languageBytesMap);
 
-    console.log(eligibleRepositories.length);
-
-    const eligibleGithubRepoIds = eligibleRepositories.map(repo => String(repo.id));
+    const eligibleGithubRepoIds = eligibleRepositories.map((repo) => String(repo.databaseId));
 
     const syncedAt = new Date();
     const CACHE_TTL_HOURS = 12;
@@ -147,7 +110,6 @@ async function syncGithub(userId: string): Promise<SyncGithubResult> {
         lastSyncedAt: syncedAt,
         cacheExpiresAt,
     };
-
 
     await prisma.$transaction(async (tx) => {
         // Update the user with github id and github username from github api
@@ -195,7 +157,7 @@ async function syncGithub(userId: string): Promise<SyncGithubResult> {
             },
         });
 
-        // Fetch existing repositories for the user to optimize persistence round-trips
+        // Fetch existing repositories for the user to preserve primary keys for existing records
         const existingRepos = await tx.repository.findMany({
             where: { userId },
             select: {
@@ -207,60 +169,68 @@ async function syncGithub(userId: string): Promise<SyncGithubResult> {
             existingRepos.map((r) => [r.githubRepoId, r.id])
         );
 
-        const reposToCreate: Prisma.RepositoryCreateManyInput[] = [];
-        const updatePromises: Promise<unknown>[] = [];
+        if (eligibleRepositories.length > 0) {
+            const valueTuples: string[] = [];
+            const params: unknown[] = [];
+            let paramIdx = 1;
 
-        for (const repo of eligibleRepositories) {
-            const githubRepoIdStr = String(repo.id);
-            const existingId = existingRepoMap.get(githubRepoIdStr);
+            for (const repo of eligibleRepositories) {
+                const githubRepoIdStr = String(repo.databaseId);
+                const existingId = existingRepoMap.get(githubRepoIdStr) || randomUUID();
+                const topicsArray = repo.repositoryTopics?.nodes
+                    ? repo.repositoryTopics.nodes.map((n) => n.topic.name)
+                    : [];
+                const defaultBranch = repo.defaultBranchRef?.name || "main";
 
-            const repositoryData = {
-                name: repo.name,
-                description: repo.description,
+                valueTuples.push(
+                    `($${paramIdx++}, $${paramIdx++}, $${paramIdx++}, $${paramIdx++}, $${paramIdx++}, $${paramIdx++}, $${paramIdx++}, $${paramIdx++}, $${paramIdx++}::jsonb, $${paramIdx++}, $${paramIdx++}, $${paramIdx++}, $${paramIdx++}, $${paramIdx++}, $${paramIdx++}::timestamptz, $${paramIdx++}::timestamptz, NOW(), NOW())`
+                );
 
-                stars: repo.stargazers_count,
-                forks: repo.forks_count,
-
-                primaryLanguage: repo.language,
-
-                topics: repo.topics ?? Prisma.DbNull,
-
-                githubUrl: repo.html_url,
-                homepageUrl: repo.homepage,
-                defaultBranch: repo.default_branch || "main",
-
-                isFork: repo.fork,
-                isArchived: repo.archived,
-
-                lastSyncedAt: syncedAt,
-                githubUpdatedAt: new Date(repo.updated_at),
-                readme: readmes.get(githubRepoIdStr) ?? null,
-            };
-
-            if (!existingId) {
-                reposToCreate.push({
+                params.push(
+                    existingId,
                     userId,
-                    githubRepoId: githubRepoIdStr,
-                    ...repositoryData,
-                });
-            } else {
-                updatePromises.push(
-                    tx.repository.update({
-                        where: { id: existingId },
-                        data: repositoryData,
-                    })
+                    githubRepoIdStr,
+                    repo.name,
+                    repo.description ?? null,
+                    repo.stargazerCount || 0,
+                    repo.forkCount || 0,
+                    repo.primaryLanguage?.name ?? null,
+                    JSON.stringify(topicsArray),
+                    repo.url,
+                    repo.homepageUrl ?? null,
+                    defaultBranch,
+                    repo.isFork,
+                    repo.isArchived,
+                    syncedAt.toISOString(),
+                    new Date(repo.updatedAt).toISOString()
                 );
             }
-        }
 
-        if (reposToCreate.length > 0) {
-            await tx.repository.createMany({
-                data: reposToCreate,
-            });
-        }
+            const bulkUpsertSql = `
+                INSERT INTO "Repository" (
+                    "id", "userId", "githubRepoId", "name", "description", "stars", "forks",
+                    "primaryLanguage", "topics", "githubUrl", "homepageUrl", "defaultBranch",
+                    "isFork", "isArchived", "lastSyncedAt", "githubUpdatedAt", "createdAt", "updatedAt"
+                )
+                VALUES ${valueTuples.join(", ")}
+                ON CONFLICT ("githubRepoId") DO UPDATE SET
+                    "name" = EXCLUDED."name",
+                    "description" = EXCLUDED."description",
+                    "stars" = EXCLUDED."stars",
+                    "forks" = EXCLUDED."forks",
+                    "primaryLanguage" = EXCLUDED."primaryLanguage",
+                    "topics" = EXCLUDED."topics",
+                    "githubUrl" = EXCLUDED."githubUrl",
+                    "homepageUrl" = EXCLUDED."homepageUrl",
+                    "defaultBranch" = EXCLUDED."defaultBranch",
+                    "isFork" = EXCLUDED."isFork",
+                    "isArchived" = EXCLUDED."isArchived",
+                    "lastSyncedAt" = EXCLUDED."lastSyncedAt",
+                    "githubUpdatedAt" = EXCLUDED."githubUpdatedAt",
+                    "updatedAt" = NOW();
+            `;
 
-        if (updatePromises.length > 0) {
-            await Promise.all(updatePromises);
+            await tx.$executeRawUnsafe(bulkUpsertSql, ...params);
         }
 
         // Delete stale repositories (same user, githubRepoId not in eligibleGithubRepoIds)

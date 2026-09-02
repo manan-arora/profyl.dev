@@ -60,14 +60,14 @@ export default function ProjectEditModal({ repo, onClose, onApply }: ProjectEdit
           {/* Custom Display Title */}
           <label className="block">
             <span className="block font-mono text-[10px] uppercase tracking-[0.18em] text-white/45 mb-2">
-              Custom Display Title (Default: {repo.name})
+              Custom Display Title
             </span>
             <input
               type="text"
               value={customTitle}
               onChange={(e) => setCustomTitle(e.target.value)}
               className={inputCls}
-              placeholder="e.g. My Custom Name"
+              placeholder={repo.name ? `Default: ${repo.name}` : "e.g. My Custom Name"}
             />
           </label>
 
@@ -81,7 +81,11 @@ export default function ProjectEditModal({ repo, onClose, onApply }: ProjectEdit
               value={customDescription}
               onChange={(e) => setCustomDescription(e.target.value)}
               className="w-full bg-transparent border border-white/[0.08] px-3 py-2.5 text-sm text-white placeholder:text-white/25 outline-none focus:border-neon/60 focus:bg-white/[0.02] transition resize-none rounded-none font-mono"
-              placeholder="Provide a polished, recruiter-focused explanation of this project."
+              placeholder={
+                repo.description
+                  ? `Default: ${repo.description}`
+                  : "Provide a polished, recruiter-focused explanation of this project."
+              }
             />
           </label>
 

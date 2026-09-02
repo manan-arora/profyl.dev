@@ -130,5 +130,50 @@ export interface GithubFileContentResponse {
   sha: string;
 }
 
+export interface GraphQLRepositoryLanguageEdge {
+  size: number;
+  node: {
+    name: string;
+  };
+}
 
+export interface GraphQLRepositoryTopicNode {
+  topic: {
+    name: string;
+  };
+}
 
+export interface GraphQLRepositoryNode {
+  databaseId: number;
+  name: string;
+  nameWithOwner: string;
+  description: string | null;
+  isPrivate: boolean;
+  isFork: boolean;
+  isArchived: boolean;
+  stargazerCount: number;
+  forkCount: number;
+  primaryLanguage: { name: string } | null;
+  languages: {
+    edges: GraphQLRepositoryLanguageEdge[];
+  };
+  repositoryTopics: {
+    nodes: GraphQLRepositoryTopicNode[];
+  };
+  url: string;
+  homepageUrl: string | null;
+  defaultBranchRef: { name: string } | null;
+  updatedAt: string;
+}
+
+export interface GraphQLRepositoriesData {
+  viewer: {
+    repositories: {
+      pageInfo: {
+        hasNextPage: boolean;
+        endCursor: string | null;
+      };
+      nodes: GraphQLRepositoryNode[];
+    };
+  };
+}
