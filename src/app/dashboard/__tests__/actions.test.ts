@@ -244,6 +244,26 @@ describe("Dashboard Save/Publish Action", () => {
       expect(result.success).toBe(false);
       expect(result.error).toContain("You can feature a maximum of 4 projects");
     });
+
+    it("should fail validation if a non-featured project contains custom metadata", async () => {
+      const customNonFeaturedProject = {
+        ...validProject,
+        isFeatured: false,
+        customTitle: "Bypassed Title",
+      };
+
+      vi.mocked(prisma.repository.findMany).mockResolvedValue([
+        { id: customNonFeaturedProject.id },
+      ] as any);
+
+      const result = await saveChangesAction({
+        profile: validProfile,
+        projects: [customNonFeaturedProject],
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Only featured projects can be customized.");
+    });
   });
 
   describe("Ownership Authorization", () => {
@@ -407,6 +427,100 @@ describe("Dashboard Save/Publish Action", () => {
       expect(result.error).toBe(
         "An unexpected error occurred during retry. Please try again.",
       );
+    });
+  });
+
+  describe("Dirty Repository Filtering", () => {
+    it("should execute 0 repository updates when projects array is empty (profile-only edit)", async () => {
+      const result = await saveChangesAction({
+        profile: validProfile,
+        projects: [],
+      });
+
+      expect(result.success).toBe(true);
+      expect(mockTx.profile.update).toHaveBeenCalled();
+      expect(mockTx.repository.update).not.toHaveBeenCalled();
+    });
+
+    it("should execute 0 repository updates when 50 submitted repositories match database baseline", async () => {
+      const repos = Array.from({ length: 50 }, (_, i) => ({
+        id: `repo_${i}`,
+        isFeatured: false,
+        displayOrder: null,
+        customTitle: null,
+        customDescription: null,
+        liveDemoUrl: null,
+        topics: [],
+      }));
+
+      // Mock database state matching all 50 submitted repos
+      vi.mocked(prisma.repository.findMany).mockResolvedValue(
+        repos.map((r) => ({ ...r })) as any,
+      );
+
+      const result = await saveChangesAction({
+        profile: validProfile,
+        projects: repos,
+      });
+
+      expect(result.success).toBe(true);
+      expect(mockTx.profile.update).toHaveBeenCalled();
+      expect(mockTx.repository.update).not.toHaveBeenCalled();
+    });
+
+    it("should execute exactly 1 repository update when only 1 of multiple submitted projects is modified", async () => {
+      const cleanRepo = {
+        id: "repo_clean",
+        isFeatured: false,
+        displayOrder: null,
+        customTitle: null,
+        customDescription: null,
+        liveDemoUrl: null,
+        topics: ["react"],
+      };
+
+      const dirtyRepoSubmitted = {
+        id: "repo_dirty",
+        isFeatured: true,
+        displayOrder: 1,
+        customTitle: "Updated Title",
+        customDescription: "Updated Description",
+        liveDemoUrl: "https://example.com",
+        topics: ["react", "nextjs"],
+      };
+
+      // Mock DB state: repo_clean is unchanged, repo_dirty had old values in DB
+      vi.mocked(prisma.repository.findMany).mockResolvedValue([
+        { ...cleanRepo },
+        {
+          id: "repo_dirty",
+          isFeatured: false,
+          displayOrder: null,
+          customTitle: null,
+          customDescription: null,
+          liveDemoUrl: null,
+          topics: [],
+        },
+      ] as any);
+
+      const result = await saveChangesAction({
+        profile: validProfile,
+        projects: [cleanRepo, dirtyRepoSubmitted],
+      });
+
+      expect(result.success).toBe(true);
+      expect(mockTx.repository.update).toHaveBeenCalledTimes(1);
+      expect(mockTx.repository.update).toHaveBeenCalledWith({
+        where: { id: "repo_dirty" },
+        data: {
+          isFeatured: true,
+          displayOrder: 1,
+          customTitle: "Updated Title",
+          customDescription: "Updated Description",
+          liveDemoUrl: "https://example.com",
+          topics: ["react", "nextjs"],
+        },
+      });
     });
   });
 });

@@ -149,15 +149,36 @@ export async function saveChangesAction(payload: {
       parsedProjects.push(parsed.data);
     }
 
-    // 3. Verify every repository being modified belongs to the authenticated user
+    // 3. Verify every repository being modified belongs to the authenticated user and fetch current state
     const projectIds = parsedProjects.map((p) => p.id);
+    const userReposMap = new Map<
+      string,
+      {
+        id: string;
+        isFeatured: boolean;
+        displayOrder: number | null;
+        customTitle: string | null;
+        customDescription: string | null;
+        liveDemoUrl: string | null;
+        topics: unknown;
+      }
+    >();
+
     if (projectIds.length > 0) {
       const userRepos = await prisma.repository.findMany({
         where: {
           id: { in: projectIds },
           userId: user.id,
         },
-        select: { id: true },
+        select: {
+          id: true,
+          isFeatured: true,
+          displayOrder: true,
+          customTitle: true,
+          customDescription: true,
+          liveDemoUrl: true,
+          topics: true,
+        },
       });
 
       if (userRepos.length !== projectIds.length) {
@@ -167,9 +188,13 @@ export async function saveChangesAction(payload: {
             "One or more projects do not exist or do not belong to this user.",
         };
       }
+
+      for (const repo of userRepos) {
+        userReposMap.set(repo.id, repo);
+      }
     }
 
-    // 4. Validate max 4 featured projects
+    // 4. Validate max 4 featured projects and enforce customization rules
     const featuredProjects = parsedProjects.filter((p) => p.isFeatured);
     if (featuredProjects.length > 4) {
       return {
@@ -177,6 +202,44 @@ export async function saveChangesAction(payload: {
         error: "You can feature a maximum of 4 projects.",
       };
     }
+
+    for (const p of parsedProjects) {
+      if (!p.isFeatured && (p.customTitle || p.customDescription || p.liveDemoUrl)) {
+        return {
+          success: false,
+          error: "Only featured projects can be customized.",
+        };
+      }
+    }
+
+    // Filter parsedProjects down to only those with modified editable fields
+    const reposToUpdate = parsedProjects.filter((input) => {
+      const existing = userReposMap.get(input.id);
+      if (!existing) return true;
+
+      const isFeaturedDiff = input.isFeatured !== existing.isFeatured;
+      const displayOrderDiff =
+        (input.displayOrder ?? null) !== (existing.displayOrder ?? null);
+      const customTitleDiff =
+        (input.customTitle ?? null) !== (existing.customTitle ?? null);
+      const customDescriptionDiff =
+        (input.customDescription ?? null) !== (existing.customDescription ?? null);
+      const liveDemoUrlDiff =
+        (input.liveDemoUrl ?? null) !== (existing.liveDemoUrl ?? null);
+
+      const existingTopics = Array.isArray(existing.topics) ? existing.topics : [];
+      const topicsDiff =
+        JSON.stringify(input.topics) !== JSON.stringify(existingTopics);
+
+      return (
+        isFeaturedDiff ||
+        displayOrderDiff ||
+        customTitleDiff ||
+        customDescriptionDiff ||
+        liveDemoUrlDiff ||
+        topicsDiff
+      );
+    });
 
     let finalStatus = user.profileStatus;
 
@@ -204,8 +267,8 @@ export async function saveChangesAction(payload: {
         },
       });
 
-      // Persist editable repository/project metadata individually
-      for (const repo of parsedProjects) {
+      // Persist editable repository/project metadata only for modified projects
+      for (const repo of reposToUpdate) {
         await tx.repository.update({
           where: { id: repo.id },
           data: {

@@ -468,8 +468,21 @@ export function DashboardProvider({
     setSaveStatus("saving");
     setProcessingError(null);
 
-    const projectsChanged =
-      JSON.stringify(localProjects) !== JSON.stringify(initialProjects);
+    const dirtyProjects = localProjects.filter((localRepo) => {
+      const initialRepo = initialProjects.find((r) => r.id === localRepo.id);
+      if (!initialRepo) return true;
+
+      return (
+        localRepo.isFeatured !== initialRepo.isFeatured ||
+        localRepo.displayOrder !== initialRepo.displayOrder ||
+        localRepo.customTitle !== initialRepo.customTitle ||
+        localRepo.customDescription !== initialRepo.customDescription ||
+        localRepo.liveDemoUrl !== initialRepo.liveDemoUrl ||
+        JSON.stringify(localRepo.topics) !== JSON.stringify(initialRepo.topics)
+      );
+    });
+
+    const projectsChanged = dirtyProjects.length > 0;
 
     if (projectsChanged) {
       setIsProcessingOpen(true);
@@ -479,7 +492,7 @@ export function DashboardProvider({
     try {
       const response = await saveChangesAction({
         profile: localProfile,
-        projects: localProjects,
+        projects: dirtyProjects,
         hasProjectChanges: projectsChanged,
       });
 

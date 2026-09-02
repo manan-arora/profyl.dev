@@ -101,8 +101,16 @@ export default function RepositoryCard({
           </label>
           <button
             type="button"
-            onClick={onEdit}
-            className="border border-white/[0.08] px-3 py-2 text-xs text-white/75 hover:text-white hover:bg-white/[0.03] transition rounded-none cursor-pointer flex items-center gap-1.5 font-mono"
+            onClick={() => {
+              if (featured) onEdit();
+            }}
+            disabled={!featured}
+            title={!featured ? "Feature this repository to edit custom metadata" : undefined}
+            className={`border px-3 py-2 text-xs transition rounded-none flex items-center gap-1.5 font-mono ${
+              featured
+                ? "border-white/[0.08] text-white/75 hover:text-white hover:bg-white/[0.03] cursor-pointer"
+                : "border-white/[0.04] text-white/25 cursor-not-allowed bg-transparent"
+            }`}
           >
             <Settings className="size-3.5" />
             <span>Edit</span>
