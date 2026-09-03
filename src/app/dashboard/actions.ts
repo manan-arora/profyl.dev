@@ -335,6 +335,21 @@ export async function saveChangesAction(payload: {
       orderBy: { githubUpdatedAt: "desc" },
     });
 
+    const githubCache = await prisma.gitHubCache.findUnique({
+      where: { userId: user.id },
+      select: { lastSyncedAt: true },
+    });
+
+    const leetcodeCache = await prisma.leetCodeCache.findUnique({
+      where: { userId: user.id },
+      select: { lastSyncedAt: true },
+    });
+
+    const syncStatus = {
+      githubLastSyncedAt: githubCache?.lastSyncedAt?.toISOString() ?? null,
+      leetcodeLastSyncedAt: leetcodeCache?.lastSyncedAt?.toISOString() ?? null,
+    };
+
     return {
       success: true,
       canonicalData,
@@ -343,6 +358,7 @@ export async function saveChangesAction(payload: {
       profileStatus: finalStatus,
       derivedDataFailed,
       pipelineError,
+      syncStatus,
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
@@ -433,12 +449,28 @@ export async function checkDashboardFreshnessAction() {
       orderBy: { githubUpdatedAt: "desc" },
     });
 
+    const githubCache = await prisma.gitHubCache.findUnique({
+      where: { userId: user.id },
+      select: { lastSyncedAt: true },
+    });
+
+    const leetcodeCache = await prisma.leetCodeCache.findUnique({
+      where: { userId: user.id },
+      select: { lastSyncedAt: true },
+    });
+
+    const syncStatus = {
+      githubLastSyncedAt: githubCache?.lastSyncedAt?.toISOString() ?? null,
+      leetcodeLastSyncedAt: leetcodeCache?.lastSyncedAt?.toISOString() ?? null,
+    };
+
     return {
       success: true,
       refreshed,
       canonicalData,
       rawProfile,
       rawRepositories,
+      syncStatus,
     };
   } catch (error: any) {
     console.error("Dashboard freshness check failed:", error);

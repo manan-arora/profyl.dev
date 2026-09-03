@@ -62,7 +62,7 @@ function Hero() {
           </div>
         </div>
 
-        <div className="w-full overflow-hidden">
+        <div className="w-full">
           <ProfileCard />
         </div>
       </div>
@@ -85,6 +85,7 @@ function Stat({ k, v }: { k: string; v: string }) {
 
 function ProfileCard() {
   const [score, setScore] = useState(0);
+
   useEffect(() => {
     let i = 0;
     const id = setInterval(() => {
@@ -161,11 +162,11 @@ function ProfileCard() {
 
         {/* grid panels */}
         <div className="grid grid-cols-1 sm:grid-cols-2 border-t hairline">
-          <Panel label="Engineering Radar" border="sm:r">
+          <Panel label="Specialization Radar" border="sm:r">
             <Radar />
           </Panel>
-          <Panel label="Signal Breakdown" border="t sm:border-t-0">
-            <div className="mt-1.5 space-y-2">
+          <Panel label="Score Composition" border="t sm:border-t-0">
+            <div className="space-y-2">
               <Bar label="GitHub" value={85} />
               <Bar label="Projects" value={78} />
               <Bar label="LeetCode" value={72} />
@@ -218,17 +219,19 @@ function Panel({
   colSpan?: boolean;
 }) {
   const cls = [
-    "p-4",
+    "px-4 py-3 flex flex-col justify-between h-full",
     border.includes("r") ? "border-r hairline" : "",
     border.includes("t") ? "border-t hairline" : "",
     colSpan ? "col-span-2" : "",
   ].join(" ");
   return (
     <div className={cls}>
-      <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/40 mb-2">
+      <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/40 mb-1 shrink-0">
         {label}
       </div>
-      {children}
+      <div className="flex-1 flex flex-col justify-center">
+        {children}
+      </div>
     </div>
   );
 }
@@ -276,25 +279,45 @@ function ContribGrid() {
 
 function Radar() {
   const axes = [
-    "Build Activity",
-    "Technical Range",
-    "Problem Solving",
-    "Consistency",
-    "Open Source",
+    { label: "Build Activity", lines: ["BUILD", "ACTIVITY"] },
+    { label: "Technical Range", lines: ["TECHNICAL", "RANGE"] },
+    { label: "Problem Solving", lines: ["PROBLEM", "SOLVING"] },
+    { label: "Consistency", lines: ["CONSISTENCY"] },
+    { label: "Open Source", lines: ["OPEN", "SOURCE"] },
   ];
   const values = [0.82, 0.76, 0.71, 0.84, 0.48];
-  const size = 160;
+  const size = 200;
   const cx = size / 2;
   const cy = size / 2;
-  const r = 60;
+  const r = 50;
+
   const pt = (i: number, v: number) => {
     const a = (Math.PI * 2 * i) / axes.length - Math.PI / 2;
     return [cx + Math.cos(a) * r * v, cy + Math.sin(a) * r * v];
   };
+
+  const labelPt = (i: number) => {
+    const a = (Math.PI * 2 * i) / axes.length - Math.PI / 2;
+    const labelR = r + 14;
+    const x = cx + Math.cos(a) * labelR;
+    const y = cy + Math.sin(a) * labelR;
+
+    let textAnchor: "middle" | "start" | "end" = "middle";
+    if (Math.abs(Math.cos(a)) < 0.1) {
+      textAnchor = "middle";
+    } else if (Math.cos(a) > 0) {
+      textAnchor = "start";
+    } else {
+      textAnchor = "end";
+    }
+    return { x, y, textAnchor };
+  };
+
   const poly = (v: number[]) => v.map((vv, i) => pt(i, vv).join(",")).join(" ");
+
   return (
     <div className="flex items-center justify-center">
-      <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[120px]">
+      <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[155px]">
         {[0.25, 0.5, 0.75, 1].map((s) => (
           <polygon
             key={s}
@@ -327,6 +350,30 @@ function Radar() {
         {values.map((v, i) => {
           const [x, y] = pt(i, v);
           return <circle key={i} cx={x} cy={y} r={1.8} fill="#C7FF41" />;
+        })}
+        {axes.map((axis, i) => {
+          const { x, y, textAnchor } = labelPt(i);
+          return (
+            <text
+              key={axis.label}
+              x={x}
+              y={y}
+              textAnchor={textAnchor}
+              fill="rgba(255,255,255,0.4)"
+              fontSize={7.5}
+              className="font-mono"
+            >
+              {axis.lines.map((line, lineIdx) => (
+                <tspan
+                  key={line}
+                  x={x}
+                  dy={lineIdx === 0 ? (axis.lines.length > 1 ? "-3" : "0") : "9"}
+                >
+                  {line}
+                </tspan>
+              ))}
+            </text>
+          );
         })}
       </svg>
     </div>

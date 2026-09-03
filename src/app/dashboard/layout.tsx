@@ -52,6 +52,21 @@ export default async function DashboardLayout({
     },
   });
 
+  const githubCache = await prisma.gitHubCache.findUnique({
+    where: { userId: user.id },
+    select: { lastSyncedAt: true },
+  });
+
+  const leetcodeCache = await prisma.leetCodeCache.findUnique({
+    where: { userId: user.id },
+    select: { lastSyncedAt: true },
+  });
+
+  const initialSyncStatus = {
+    githubLastSyncedAt: githubCache?.lastSyncedAt?.toISOString() ?? null,
+    leetcodeLastSyncedAt: leetcodeCache?.lastSyncedAt?.toISOString() ?? null,
+  };
+
   // Typecast user record for Dashboard shell compatibility
   const typedUser = {
     id: user.id,
@@ -69,6 +84,7 @@ export default async function DashboardLayout({
       initialData={initialData}
       rawProfile={rawProfile}
       rawRepositories={rawRepositories}
+      initialSyncStatus={initialSyncStatus}
     >
       {children}
     </DashboardShell>

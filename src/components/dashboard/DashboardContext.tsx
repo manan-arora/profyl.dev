@@ -108,6 +108,11 @@ export interface LocalRepository {
 export type SaveState = "idle" | "unsaved" | "saving" | "saved";
 export type RefreshState = "idle" | "refreshing" | "failed";
 
+export interface DashboardSyncStatus {
+  githubLastSyncedAt: string | null;
+  leetcodeLastSyncedAt: string | null;
+}
+
 interface DashboardCtx {
   user: DashboardUser;
   savedData: ProfylPageData;
@@ -117,6 +122,9 @@ interface DashboardCtx {
   isDirty: boolean;
   activeTab: "profile" | "projects" | "preview";
   profileStatus: "INCOMPLETE" | "DRAFT" | "PUBLISHED";
+  syncStatus: DashboardSyncStatus;
+  showFirstPublishModal: boolean;
+  closeFirstPublishModal: () => void;
   updateProfile: (updates: Partial<LocalProfile>) => void;
   updateProject: (id: string, updates: Partial<LocalRepository>) => void;
   toggleFeature: (id: string) => void;
@@ -144,6 +152,7 @@ interface DashboardProviderProps {
   initialData: ProfylPageData;
   rawProfile: DashboardProfile | null;
   rawRepositories: DashboardRepository[];
+  initialSyncStatus?: DashboardSyncStatus;
 }
 
 export function DashboardProvider({
@@ -152,6 +161,7 @@ export function DashboardProvider({
   initialData,
   rawProfile,
   rawRepositories,
+  initialSyncStatus,
 }: DashboardProviderProps) {
   const pathname = usePathname();
 
@@ -177,6 +187,12 @@ export function DashboardProvider({
   const [profileStatus, setProfileStatus] = useState<
     "INCOMPLETE" | "DRAFT" | "PUBLISHED"
   >(user.profileStatus);
+  const [syncStatus, setSyncStatus] = useState<DashboardSyncStatus>(() => ({
+    githubLastSyncedAt: initialSyncStatus?.githubLastSyncedAt ?? null,
+    leetcodeLastSyncedAt: initialSyncStatus?.leetcodeLastSyncedAt ?? null,
+  }));
+  const [showFirstPublishModal, setShowFirstPublishModal] = useState(false);
+  const closeFirstPublishModal = useCallback(() => setShowFirstPublishModal(false), []);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">(
     "idle",
   );
@@ -345,6 +361,9 @@ export function DashboardProvider({
 
       if (response.refreshed && response.canonicalData) {
         setSavedData(response.canonicalData);
+        if (response.syncStatus) {
+          setSyncStatus(response.syncStatus);
+        }
 
         const freshProfile = mapRawProfileToLocal(response.rawProfile);
         const freshProjects = mapRawRepositoriesToLocal(
@@ -467,6 +486,7 @@ export function DashboardProvider({
   const saveChanges = async () => {
     setSaveStatus("saving");
     setProcessingError(null);
+    const wasDraft = profileStatus === "DRAFT";
 
     const dirtyProjects = localProjects.filter((localRepo) => {
       const initialRepo = initialProjects.find((r) => r.id === localRepo.id);
@@ -509,6 +529,14 @@ export function DashboardProvider({
       // 2. Local state synchronized
       if (response.profileStatus) {
         setProfileStatus(response.profileStatus);
+      }
+
+      if (response.syncStatus) {
+        setSyncStatus(response.syncStatus);
+      }
+
+      if (wasDraft && response.profileStatus === "PUBLISHED") {
+        setShowFirstPublishModal(true);
       }
 
       const updatedProfile = mapRawProfileToLocal(response.rawProfile);
@@ -604,6 +632,9 @@ export function DashboardProvider({
         isDirty,
         activeTab,
         profileStatus,
+        syncStatus,
+        showFirstPublishModal,
+        closeFirstPublishModal,
         updateProfile,
         updateProject,
         toggleFeature,

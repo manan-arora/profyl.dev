@@ -7,10 +7,12 @@ import {
   DashboardUser,
   DashboardProfile,
   DashboardRepository,
+  DashboardSyncStatus,
 } from "./DashboardContext";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import DashboardStatusBar from "./DashboardStatusBar";
+import PublishSuccessModal from "./PublishSuccessModal";
 import { ProfylPageData } from "@/types/profyl-page";
 
 interface DashboardShellProps {
@@ -19,6 +21,7 @@ interface DashboardShellProps {
   initialData: ProfylPageData;
   rawProfile: DashboardProfile | null;
   rawRepositories: DashboardRepository[];
+  initialSyncStatus?: DashboardSyncStatus;
 }
 
 export default function DashboardShell({
@@ -27,6 +30,7 @@ export default function DashboardShell({
   initialData,
   rawProfile,
   rawRepositories,
+  initialSyncStatus,
 }: DashboardShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -36,6 +40,7 @@ export default function DashboardShell({
       initialData={initialData}
       rawProfile={rawProfile}
       rawRepositories={rawRepositories}
+      initialSyncStatus={initialSyncStatus}
     >
       <div className="flex min-h-screen bg-[#0D0D0D] text-white">
         {/* Fixed Left Sidebar panel */}
@@ -60,6 +65,7 @@ export default function DashboardShell({
           </main>
         </div>
       </div>
+      <PublishSuccessModal />
     </DashboardProvider>
   );
 }

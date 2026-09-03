@@ -7,10 +7,15 @@ import { ProfylPage } from "@/components/profyl/ProfylPage";
 import UnsavedChangesModal from "./UnsavedChangesModal";
 import { PreparationLoader } from "@/components/leetcode/LeetcodeResultPanel";
 import { Button } from "@/components/ui/button";
+import SyncStatusPopover from "./SyncStatusPopover";
+import { Copy, Check } from "lucide-react";
+import { toast } from "sonner";
 
 export default function PreviewTab() {
   const router = useRouter();
   const {
+    user,
+    profileStatus,
     savedData,
     isDirty,
     discardEdits,
@@ -22,6 +27,21 @@ export default function PreviewTab() {
   } = useDashboard();
 
   const [localSaving, setLocalSaving] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyUrl = useCallback(async () => {
+    try {
+      const fullUrl = typeof window !== "undefined"
+        ? `${window.location.origin}/${user.slug}`
+        : `https://profyl.dev/${user.slug}`;
+      await navigator.clipboard.writeText(fullUrl);
+      setCopied(true);
+      toast.success("Profile URL copied to clipboard!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy URL:", err);
+    }
+  }, [user.slug]);
 
   const handleCancel = useCallback(() => {
     // Redirect back to the last active edit tab (Profile/Projects)
@@ -96,21 +116,41 @@ export default function PreviewTab() {
         /* Allowed State - Render Preview Banner + Public Profile Page Component */
         <>
           {/* 1. Preview Mode Header Banner */}
-          <div className="bg-[#141414] border-b border-white/[0.08] py-3 px-6 lg:px-10 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-2.5">
-              
-              <span className="font-mono text-[10px] uppercase tracking-widest text-neon font-semibold">
-                ● Preview Mode
-              </span>
-              <span className="hidden sm:inline text-white/20">|</span>
-              <span className="hidden sm:inline font-mono text-[9px] text-white/45">
-                This is exactly what people see when visiting your public Profyl.
-              </span>
+          <div className="bg-[#141414] border-b border-white/[0.08] py-3 px-6 lg:px-10 flex items-center justify-between gap-4 shrink-0">
+            {profileStatus === "PUBLISHED" ? (
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-[#c7ff41] font-semibold shrink-0">
+                  ● LIVE
+                </span>
+                <span className="text-white/20 shrink-0">|</span>
+                <span className="font-mono text-[11px] text-white/70 truncate">
+                  profyl.dev/{user.slug}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleCopyUrl}
+                  aria-label="Copy public profile URL"
+                  className="p-1 text-white/50 hover:text-white transition cursor-pointer shrink-0"
+                >
+                  {copied ? <Check className="size-3.5 text-[#c7ff41]" /> : <Copy className="size-3.5" />}
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-amber-400 font-semibold shrink-0">
+                  ● DRAFT
+                </span>
+                <span className="text-white/20 shrink-0">|</span>
+                <span className="font-mono text-[10px] text-white/45 truncate">
+                  This is how your Profyl will look when it’s public. Publish to make it live.
+                </span>
+              </div>
+            )}
+
+            {/* Sync status popover target on far right */}
+            <div className="shrink-0">
+              <SyncStatusPopover />
             </div>
-            {/* View live target */}
-            <span className="font-mono text-[10px] text-neon/85">
-              Last Saved Data
-            </span>
           </div>
 
           {/* 2. Embedded ProfylPage Renderer in Preview Mode */}

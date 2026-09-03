@@ -21,6 +21,12 @@ vi.mock("@/lib/prisma", () => ({
     user: {
       findUnique: vi.fn(),
     },
+    gitHubCache: {
+      findUnique: vi.fn(),
+    },
+    leetCodeCache: {
+      findUnique: vi.fn(),
+    },
     $transaction: vi.fn(),
   },
 }));
