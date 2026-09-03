@@ -16,11 +16,13 @@ import {
   Tooltip,
 } from "recharts";
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
+    const item = payload[0].payload;
+    const monthName = item?.month || item?.monthKey || "";
     return (
       <div className="bg-[#141414] border hairline px-3 py-2 font-mono text-xs select-none">
-        <div className="text-white/40 mb-1 uppercase tracking-wider">{label}</div>
+        <div className="text-white/40 mb-1 uppercase tracking-wider">{monthName}</div>
         <div className="text-neon font-semibold">
           {payload[0].value.toLocaleString("en-US")} contributions
         </div>
@@ -200,7 +202,17 @@ export function ProfylGithubAnalytics({ data }: { data: ProfylPageData }) {
                     </defs>
 
                     <XAxis
-                      dataKey="month"
+                      dataKey="monthKey"
+                      tickFormatter={(value, index) => {
+                        const item = github.monthlyContributionSeries[index];
+                        if (item && item.month) return item.month;
+                        if (typeof value === "string" && value.includes("-")) {
+                          const [year, monthStr] = value.split("-");
+                          const date = new Date(parseInt(year), parseInt(monthStr) - 1, 1);
+                          return date.toLocaleString("en-US", { month: "short" });
+                        }
+                        return value;
+                      }}
                       stroke="rgba(255, 255, 255, 0.3)"
                       fontSize={10}
                       tickLine={false}

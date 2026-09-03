@@ -185,6 +185,7 @@ export async function getProfylPageData(params: {
     const date = new Date(parseInt(year), parseInt(monthStr) - 1, 1);
     const monthName = date.toLocaleString("en-US", { month: "short" });
     return {
+      monthKey: key,
       month: monthName,
       contributions: monthlyContributionGroups[key],
     };

@@ -2,6 +2,7 @@ import { NormalizedContributionCalendar } from "./github";
 import { DetectedTechnology } from "@/lib/analytics/repository-analysis/technologies/technology-types";
 
 export type MonthlyContribution = {
+  monthKey?: string;
   month: string;
   contributions: number;
 };

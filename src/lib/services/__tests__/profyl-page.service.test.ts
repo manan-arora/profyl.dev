@@ -178,8 +178,8 @@ describe("profylPageService", () => {
 
       // Monthly contributions check
       expect(data?.github.monthlyContributionSeries).toEqual([
-        { month: "Jan", contributions: 15 },
-        { month: "Feb", contributions: 20 },
+        { monthKey: "2026-01", month: "Jan", contributions: 15 },
+        { monthKey: "2026-02", month: "Feb", contributions: 20 },
       ]);
     });
 

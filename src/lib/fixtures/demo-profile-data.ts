@@ -242,18 +242,18 @@ export const demoProfylData: ProfylPageData = {
       { language: "CSS", percentage: 3 }
     ],
     monthlyContributionSeries: [
-      { month: "Sep", contributions: 25 },
-      { month: "Oct", contributions: 34 },
-      { month: "Nov", contributions: 45 },
-      { month: "Dec", contributions: 12 },
-      { month: "Jan", contributions: 38 },
-      { month: "Feb", contributions: 42 },
-      { month: "Mar", contributions: 48 },
-      { month: "Apr", contributions: 32 },
-      { month: "May", contributions: 15 },
-      { month: "Jun", contributions: 28 },
-      { month: "Jul", contributions: 33 },
-      { month: "Aug", contributions: 30 }
+      { monthKey: "2025-09", month: "Sep", contributions: 25 },
+      { monthKey: "2025-10", month: "Oct", contributions: 34 },
+      { monthKey: "2025-11", month: "Nov", contributions: 45 },
+      { monthKey: "2025-12", month: "Dec", contributions: 12 },
+      { monthKey: "2026-01", month: "Jan", contributions: 38 },
+      { monthKey: "2026-02", month: "Feb", contributions: 42 },
+      { monthKey: "2026-03", month: "Mar", contributions: 48 },
+      { monthKey: "2026-04", month: "Apr", contributions: 32 },
+      { monthKey: "2026-05", month: "May", contributions: 15 },
+      { monthKey: "2026-06", month: "Jun", contributions: 28 },
+      { monthKey: "2026-07", month: "Jul", contributions: 33 },
+      { monthKey: "2026-08", month: "Aug", contributions: 30 }
     ],
   },
 
